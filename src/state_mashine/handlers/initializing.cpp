@@ -1,7 +1,8 @@
 ﻿#include <Arduino.h>
 
 #include "initializing.h"
-#include "helper/global_variables.h"
+
+#include "globals.h"
 #include "state_mashine/state.h"
 
 [[noreturn]] void initializing_task(void *parameters) {

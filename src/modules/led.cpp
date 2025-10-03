@@ -1,14 +1,10 @@
 ﻿#include <Arduino.h>
 
 #include "led.h"
-#include "helper/global_variables.h"
+
+#include "config.h"
+#include "../globals.h"
 #include "state_mashine/state.h"
-
-#define LED_RGB_PIN 38
-
-#define LED_RED_PIN 21
-#define LED_YELLOW_PIN 20
-#define LED_GREEN_PIN 19
 
 void turn_on_led(int LED_PIN) {
     digitalWrite(LED_PIN, HIGH);

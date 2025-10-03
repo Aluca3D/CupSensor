@@ -1,7 +1,8 @@
 ﻿#include <Arduino.h>
 
 #include "state.h"
-#include "helper/global_variables.h"
+
+#include "globals.h"
 
 volatile SystemState current_state = STATE_OFF;
 volatile SystemState last_state = STATE_OFF;

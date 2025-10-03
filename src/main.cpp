@@ -1,5 +1,6 @@
 #include <Arduino.h>
 
+#include "config.h"
 #include "modules/led.h"
 #include "modules/us_sensor.h"
 #include "state_mashine/state.h"
