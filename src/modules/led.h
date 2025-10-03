@@ -1,6 +1,6 @@
 ﻿#ifndef PROJECT_CUPSENSE_LED_H
 #define PROJECT_CUPSENSE_LED_H
 
-void create_led_task();
+void createLEDTask();
 
 #endif //PROJECT_CUPSENSE_LED_H

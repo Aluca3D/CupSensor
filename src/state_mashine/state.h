@@ -22,10 +22,10 @@ enum SystemEvent {
     EVENT_STOP,
 };
 
-extern volatile SystemState current_state;
-extern volatile SystemState last_state;
+extern volatile SystemState currentState;
+extern volatile SystemState lastState;
 
-extern QueueHandle_t state_event_queue;
+extern QueueHandle_t stateEventQueue;
 
 void startStateMachineTask();
 void sendStateEvent(SystemEvent event);

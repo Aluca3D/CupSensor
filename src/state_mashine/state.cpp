@@ -4,81 +4,81 @@
 
 #include "globals.h"
 
-volatile SystemState current_state = STATE_OFF;
-volatile SystemState last_state = STATE_OFF;
-QueueHandle_t state_event_queue = nullptr;
+volatile SystemState currentState = STATE_OFF;
+volatile SystemState lastState = STATE_OFF;
+QueueHandle_t stateEventQueue = nullptr;
 
 void sendStateEvent(SystemEvent event) {
-    if (state_event_queue) {
+    if (stateEventQueue) {
         // Send event to the queue (non-blocking)
-        xQueueSend(state_event_queue, &event, 0);
+        xQueueSend(stateEventQueue, &event, 0);
     }
 }
 
 [[noreturn]] void stateMachineTask(void *pvParameters) {
-    Serial.printf("State Machine task started on core %d\n", xPortGetCoreID());
+    Serial.printf("stateMachineTask started on core %d\n", xPortGetCoreID());
     SystemEvent event = EVENT_NONE;
 
     for (;;) {
-        if (xQueueReceive(state_event_queue, &event, portMAX_DELAY)) {
-            last_state = current_state;
+        if (xQueueReceive(stateEventQueue, &event, portMAX_DELAY)) {
+            lastState = currentState;
 
-            switch (current_state) {
+            switch (currentState) {
                 case STATE_OFF:
                     if (event == EVENT_START) {
-                        current_state = STATE_INITIALIZING;
+                        currentState = STATE_INITIALIZING;
                     }
                     break;
 
                 case STATE_INITIALIZING:
                     if (event == EVENT_DONE) {
-                        current_state = STATE_IDLE;
+                        currentState = STATE_IDLE;
                     } else if (event == EVENT_ERROR) {
-                        current_state = STATE_ERROR;
+                        currentState = STATE_ERROR;
                     }
                     break;
 
                 case STATE_IDLE:
                     if (event == EVENT_START) {
-                        current_state = STATE_SCANNING_HEIGHT;
+                        currentState = STATE_SCANNING_HEIGHT;
                     } else if (event == EVENT_ERROR) {
-                        current_state = STATE_ERROR;
+                        currentState = STATE_ERROR;
                     }
                     break;
 
                 case STATE_SCANNING_HEIGHT:
                     if (event == EVENT_DONE) {
-                        current_state = STATE_SCANNING_FLUID;
+                        currentState = STATE_SCANNING_FLUID;
                     } else if (event == EVENT_ERROR) {
-                        current_state = STATE_ERROR;
+                        currentState = STATE_ERROR;
                     }
                     break;
 
                 case STATE_SCANNING_FLUID:
                     if (event == EVENT_DONE) {
-                        current_state = STATE_FILLING;
+                        currentState = STATE_FILLING;
                     } else if (event == EVENT_ERROR) {
-                        current_state = STATE_ERROR;
+                        currentState = STATE_ERROR;
                     }
                     break;
 
                 case STATE_FILLING:
                     if (event == EVENT_DONE) {
-                        current_state = STATE_FINISHED;
+                        currentState = STATE_FINISHED;
                     } else if (event == EVENT_ERROR) {
-                        current_state = STATE_ERROR;
+                        currentState = STATE_ERROR;
                     }
                     break;
 
                 case STATE_FINISHED:
                     if (event == EVENT_STOP) {
-                        current_state = STATE_IDLE;
+                        currentState = STATE_IDLE;
                     }
                     break;
 
                 case STATE_ERROR:
                     if (event == EVENT_STOP) {
-                        current_state = STATE_FINISHED;
+                        currentState = STATE_FINISHED;
                     }
                     break;
 
@@ -87,15 +87,15 @@ void sendStateEvent(SystemEvent event) {
             }
 
             // Optional debug log
-            Serial.printf("Transition: %d → %d (event=%d)\n", last_state, current_state, event);
+            Serial.printf("Transition: %d → %d (event=%d)\n", lastState, currentState, event);
         }
         vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
 
 void startStateMachineTask() {
-    state_event_queue = xQueueCreate(10, sizeof(SystemEvent));
-    if (!state_event_queue) {
+    stateEventQueue = xQueueCreate(10, sizeof(SystemEvent));
+    if (!stateEventQueue) {
         Serial.println("Failed to create state queue!");
         while (true) {
         } // stop
@@ -103,7 +103,7 @@ void startStateMachineTask() {
 
     xTaskCreatePinnedToCore(
         stateMachineTask,
-        "StateMachineTask",
+        "stateMachineTask",
         4096,
         nullptr,
         PRIORITY_HIGH,

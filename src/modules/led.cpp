@@ -6,36 +6,36 @@
 #include "../globals.h"
 #include "state_mashine/state.h"
 
-void turn_on_led(int LED_PIN) {
+void turnOnLED(int LED_PIN) {
     digitalWrite(LED_PIN, HIGH);
 }
 
-void turn_off_led(int LED_PIN) {
+void turnOffLED(int LED_PIN) {
     digitalWrite(LED_PIN, LOW);
 }
 
-[[noreturn]] void led_task(void *parameters) {
-    Serial.printf("LED task started on core %d\n", xPortGetCoreID());
+[[noreturn]] void LEDTask(void *parameters) {
+    Serial.printf("LEDTask started on core %d\n", xPortGetCoreID());
 
     pinMode(LED_RED_PIN, OUTPUT);
     pinMode(LED_YELLOW_PIN, OUTPUT);
     pinMode(LED_GREEN_PIN, OUTPUT);
 
-    SystemState last_seen_state = STATE_OFF;
+    SystemState lastSeenState = STATE_OFF;
 
     for (;;) {
-        SystemState current = current_state;
+        SystemState current = currentState;
 
-        if (current != last_seen_state) {
-            last_seen_state = current;
+        if (current != lastSeenState) {
+            lastSeenState = current;
 
             switch (current) {
                 case STATE_INITIALIZING:
-                    turn_on_led(LED_YELLOW_PIN);
+                    turnOnLED(LED_YELLOW_PIN);
                     break;
                 case STATE_IDLE:
-                    turn_off_led(LED_YELLOW_PIN);
-                    turn_on_led(LED_GREEN_PIN);
+                    turnOffLED(LED_YELLOW_PIN);
+                    turnOnLED(LED_GREEN_PIN);
                     break;
                 default:
                     break;
@@ -45,10 +45,10 @@ void turn_off_led(int LED_PIN) {
     }
 }
 
-void create_led_task() {
+void createLEDTask() {
     xTaskCreatePinnedToCore(
-        led_task,
-        "led_task",
+        LEDTask,
+        "LEDTask",
         2048,
         nullptr,
         PRIORITY_IDLE,

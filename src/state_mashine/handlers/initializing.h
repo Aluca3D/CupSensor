@@ -1,6 +1,6 @@
 ﻿#ifndef PROJECT_CUPSENSE_STATE_INITIALIZING_H
 #define PROJECT_CUPSENSE_STATE_INITIALIZING_H
 
-void create_init_task();
+void createInitTask();
 
 #endif //PROJECT_CUPSENSE_STATE_INITIALIZING_H
