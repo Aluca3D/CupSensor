@@ -1,4 +1,7 @@
-﻿#include "state.h"
+﻿#include <Arduino.h>
+
+#include "state.h"
+#include "helper/global_variables.h"
 
 volatile SystemState current_state = STATE_OFF;
 volatile SystemState last_state = STATE_OFF;
@@ -102,8 +105,8 @@ void startStateMachineTask() {
         "StateMachineTask",
         4096,
         nullptr,
-        1,
+        PRIORITY_HIGH,
         nullptr,
-        0
+        CORE_ID_0
     );
 }

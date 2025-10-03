@@ -1,6 +1,7 @@
 ﻿#include <Arduino.h>
 
 #include "led.h"
+#include "helper/global_variables.h"
 #include "state_mashine/state.h"
 
 #define LED_RGB_PIN 38
@@ -54,8 +55,8 @@ void create_led_task() {
         "led_task",
         2048,
         nullptr,
-        1,
+        PRIORITY_IDLE,
         nullptr,
-        1
+        CORE_ID_0
     );
 }

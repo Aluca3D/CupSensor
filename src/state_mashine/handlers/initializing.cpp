@@ -1,6 +1,7 @@
 ﻿#include <Arduino.h>
 
 #include "initializing.h"
+#include "helper/global_variables.h"
 #include "state_mashine/state.h"
 
 [[noreturn]] void initializing_task(void *parameters) {
@@ -28,8 +29,8 @@ void create_init_task() {
         "initializing_task",
         2048,
         nullptr,
-        1,
+        PRIORITY_NORMAL,
         nullptr,
-        0
+        CORE_ID_0
     );
 }
