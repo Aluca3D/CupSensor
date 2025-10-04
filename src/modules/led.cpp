@@ -1,4 +1,5 @@
 ﻿#include <Arduino.h>
+#include <Adafruit_NeoPixel.h>
 
 #include "led.h"
 
@@ -6,20 +7,22 @@
 #include "../globals.h"
 #include "state_mashine/state.h"
 
-void turnOnLED(int LED_PIN) {
-    digitalWrite(LED_PIN, HIGH);
+Adafruit_NeoPixel statusLED(ONBOARD_RGB, ONBOARD_RGB, NEO_GRBW + NEO_KHZ800);
+
+void initializeLED() {
+    statusLED.begin();
+    statusLED.setBrightness(ONBOARD_RGB_BRIGHTNESS);
 }
 
-void turnOffLED(int LED_PIN) {
-    digitalWrite(LED_PIN, LOW);
+void setStatusLED(const uint32_t color) {
+    statusLED.setPixelColor(0, color);
+    statusLED.show();
 }
 
 [[noreturn]] void LEDTask(void *parameters) {
     Serial.printf("LEDTask started on core %d\n", xPortGetCoreID());
 
-    pinMode(LED_RED_PIN, OUTPUT);
-    pinMode(LED_YELLOW_PIN, OUTPUT);
-    pinMode(LED_GREEN_PIN, OUTPUT);
+    initializeLED();
 
     SystemState lastSeenState = STATE_OFF;
 
@@ -31,11 +34,10 @@ void turnOffLED(int LED_PIN) {
 
             switch (current) {
                 case STATE_INITIALIZING:
-                    turnOnLED(LED_YELLOW_PIN);
+                    setStatusLED(Adafruit_NeoPixel::Color(255, 0, 0));
                     break;
                 case STATE_IDLE:
-                    turnOffLED(LED_YELLOW_PIN);
-                    turnOnLED(LED_GREEN_PIN);
+                    setStatusLED(Adafruit_NeoPixel::Color(255, 255, 0));
                     break;
                 default:
                     break;
