@@ -1,5 +1,6 @@
 #include <Arduino.h>
 
+#include "config.h"
 #include "modules/led.h"
 #include "state_mashine/state.h"
 #include "state_mashine/handlers/initializing.h"

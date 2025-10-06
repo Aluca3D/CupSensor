@@ -7,7 +7,7 @@
 
 // Builtin RGB LED
 #define ONBOARD_RGB 38
-#define ONBOARD_RGB_BRIGHTNESS 50
+#define ONBOARD_RGB_BRIGHTNESS 10
 
 // Servo
 

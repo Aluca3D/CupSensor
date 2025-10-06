@@ -33,17 +33,35 @@ void setStatusLED(const uint32_t color) {
             lastSeenState = current;
 
             switch (current) {
+                case STATE_OFF:
+                    setStatusLED(Adafruit_NeoPixel::Color(0, 0, 0)); // OFF
+                    break;
                 case STATE_INITIALIZING:
-                    setStatusLED(Adafruit_NeoPixel::Color(255, 0, 0));
+                    setStatusLED(Adafruit_NeoPixel::Color(255, 0, 255)); // Magenta
                     break;
                 case STATE_IDLE:
-                    setStatusLED(Adafruit_NeoPixel::Color(255, 255, 0));
+                    setStatusLED(Adafruit_NeoPixel::Color(255, 255, 0)); // Yellow
+                    break;
+                case STATE_SCANNING_HEIGHT:
+                case STATE_SCANNING_FLUID:
+                    setStatusLED(Adafruit_NeoPixel::Color(0, 255, 255)); // Cyan
+                    break;
+                case STATE_RESET_POSITION:
+                case STATE_FILLING:
+                    setStatusLED(Adafruit_NeoPixel::Color(0, 0, 255)); // Blue
+                    break;
+                case STATE_ERROR:
+                    setStatusLED(Adafruit_NeoPixel::Color(255, 0, 0)); // Red
+                    break;
+                case STATE_FINISHED:
+                    setStatusLED(Adafruit_NeoPixel::Color(0, 255, 0)); // Green
                     break;
                 default:
+                    setStatusLED(Adafruit_NeoPixel::Color(0, 0, 0)); // OFF
                     break;
             }
         }
-        vTaskDelay(pdMS_TO_TICKS(200));
+        vTaskDelay(pdMS_TO_TICKS(300));
     }
 }
 
