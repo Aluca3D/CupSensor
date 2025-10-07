@@ -12,12 +12,12 @@
 
     initializeUltraSonicSensor(US_TRIGGER, US_ECHO);
 
-    SystemState last_seen_state = STATE_OFF;
+    SystemState lastSeenState = STATE_OFF;
 
     for (;;) {
         SystemState current = currentState;
-        if (current != last_seen_state) {
-            last_seen_state = current;
+        if (current != lastSeenState) {
+            lastSeenState = current;
 
             if (current == STATE_INITIALIZING) {
                 // Stuff that needs to be done on init.

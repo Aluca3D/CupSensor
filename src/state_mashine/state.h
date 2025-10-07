@@ -12,7 +12,6 @@ enum SystemState {
     STATE_FILLING,
     STATE_ERROR,
     STATE_FINISHED,
-    STATE_ERROR,
 };
 
 enum SystemEvent {
@@ -29,6 +28,7 @@ extern volatile SystemState lastState;
 extern QueueHandle_t stateEventQueue;
 
 void startStateMachineTask();
+
 void sendStateEvent(SystemEvent event);
 
 #endif //PROJECT_CUPSENSE_STATE_H

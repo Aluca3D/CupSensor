@@ -1,10 +1,12 @@
 #include <Arduino.h>
 
+#include "Adafruit_NeoPixel.h"
 #include "config.h"
-#include "modules/led.h"
 #include "state_mashine/state.h"
 #include "state_mashine/handlers/initializing.h"
+#include "state_mashine/handlers/statusLED.h"
 
+Adafruit_NeoPixel statusLED(ONBOARD_RGB, ONBOARD_RGB, NEO_GRBW + NEO_KHZ800);
 
 void setup() {
     Serial.begin(9600);

@@ -10,6 +10,8 @@
 #define ONBOARD_RGB_BRIGHTNESS 10
 
 // Servo
+#define SERVO_PIN 17
+#define SERVO_SPEED 10
 
 // Touch Screen
 

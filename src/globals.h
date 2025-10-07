@@ -1,6 +1,10 @@
 ﻿#ifndef PROJECT_CUPSENSE_GLOBAL_VARIABLES_H
 #define PROJECT_CUPSENSE_GLOBAL_VARIABLES_H
 
+#include <Adafruit_NeoPixel.h>
+
+extern Adafruit_NeoPixel statusLED;
+
 enum TaskPriority {
     PRIORITY_IDLE = 0,
     PRIORITY_LOW = 1,
