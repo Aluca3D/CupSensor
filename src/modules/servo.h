@@ -7,10 +7,10 @@ void moveServoForwards();
 
 void moveServoBackwards();
 
-void stopServo();
-
 float getDistanceMoved();
 
 bool getIsForwards();
+
+float getServoSpeed();
 
 #endif //PROJECT_CUPSENSE_SERVO_H

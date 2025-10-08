@@ -13,19 +13,20 @@ void printBackSpace(const char *text) {
     }
 }
 
+// Todo add all debug info into here
 [[noreturn]] void debuggerTask(void *parameters) {
     Serial.printf("debuggerTask started on core %d\n", xPortGetCoreID());
     constexpr char printLine[256] = "";
     for (;;) {
         sprintf(
             const_cast<char *>(printLine),
-            "%-5f mm | isForwards %d",
-            getDistanceMoved(), getIsForwards()
+            "SERVO: %-10f mm | isForwards %-1d | speed %-10f",
+            getDistanceMoved(), getIsForwards(), getServoSpeed()
         );
         Serial.print(printLine);
         printBackSpace(printLine);
 
-        vTaskDelay(pdMS_TO_TICKS(50));
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
 

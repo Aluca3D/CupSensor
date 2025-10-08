@@ -11,19 +11,17 @@
 Adafruit_NeoPixel statusLED(ONBOARD_RGB, ONBOARD_RGB, NEO_GRBW + NEO_KHZ800);
 
 void setup() {
-    if (DEBUGGING) {
-        Serial.begin(9600);
-        Serial.println("Starting...");
-    }
+    Serial.begin(9600);
+    Serial.println("Starting...");
 
-    startStateMachineTask();
+    createDebuggingTask();
 
+    createStateMachineTask();
     createLEDTask();
     createInitTask();
 
-    createDebuggingTask(); // TODO Fix servo not moving
-
     sendStateEvent(EVENT_START);
+
     // for testing
     pinMode(37, INPUT_PULLUP);
     pinMode(36, INPUT_PULLUP);
@@ -31,14 +29,10 @@ void setup() {
 }
 
 void loop() {
-    // Determine servo direction and motion
-    if (digitalRead(36) == LOW) {
-        if (digitalRead(37) == LOW) {
-            moveServoForwards();
-        } else {
-            moveServoBackwards();
-        }
+    // For Testing
+    if (digitalRead(37) == LOW) {
+        moveServoForwards();
     } else {
-        stopServo();
+        moveServoBackwards();
     }
 }

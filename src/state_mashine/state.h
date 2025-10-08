@@ -27,7 +27,7 @@ extern volatile SystemState lastState;
 
 extern QueueHandle_t stateEventQueue;
 
-void startStateMachineTask();
+void createStateMachineTask();
 
 void sendStateEvent(SystemEvent event);
 

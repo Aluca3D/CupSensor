@@ -18,33 +18,34 @@ float linearSpeed() {
 
 void initializeServo() {
     servo.attach(SERVO_PIN);
+    servo.writeMicroseconds(SERVO_SPEED_BACKWARDS);
+    delay(1000);
 }
 
 void moveServoForwards() {
+    isForwards = true;
     if (distanceMoved < MAX_SERVO_MOVEMENT_CM) {
         lastUpdate = currentMillis;
-        isForwards = true;
-        servo.write(180 - SERVO_SPEED);
+        servo.writeMicroseconds(SERVO_SPEED_FORWARDS);
         distanceMoved += linearSpeed() * sLastUpdate;
     } else {
-        stopServo();
+        servo.writeMicroseconds(SERVO_SPEED_STOP);
     }
+    delay(SERVO_DELAY);
 }
 
 void moveServoBackwards() {
+    isForwards = false;
     if (distanceMoved > MIN_SERVO_MOVEMENT_CM) {
         lastUpdate = currentMillis;
-        isForwards = false;
-        servo.write(SERVO_SPEED);
+        servo.writeMicroseconds(SERVO_SPEED_BACKWARDS);
         distanceMoved -= linearSpeed() * sLastUpdate;
     } else {
-        stopServo();
+        servo.writeMicroseconds(SERVO_SPEED_STOP);
     }
+    delay(SERVO_DELAY);
 }
 
-void stopServo() {
-    servo.write(90);
-}
 
 float getDistanceMoved() {
     return distanceMoved * 10;
@@ -52,4 +53,8 @@ float getDistanceMoved() {
 
 bool getIsForwards() {
     return isForwards;
+}
+
+float getServoSpeed() {
+    return servo.readMicroseconds();
 }

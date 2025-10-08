@@ -1,7 +1,7 @@
 #ifndef PROJECT_CUPSENSE_CONFIG_H
 #define PROJECT_CUPSENSE_CONFIG_H
 
-#define DEBUGGING true
+#define DEBUGGING false
 
 // Ultrasonic Sensor's
 #define US_ECHO 6
@@ -13,9 +13,12 @@
 
 // Servo
 #define SERVO_PIN 17
-#define SERVO_SPEED 75
-#define COG_RADIUS_CM 0.625
-#define FULL_ROTATION_TIME 0.95
+#define SERVO_SPEED_STOP 1472 // 90°
+#define SERVO_SPEED_FORWARDS 1628 // 105°
+#define SERVO_SPEED_BACKWARDS 1317 // 75°
+#define SERVO_DELAY 95
+#define COG_RADIUS_CM 0.65
+#define FULL_ROTATION_TIME 0.92
 #define MAX_SERVO_MOVEMENT_CM 10.00
 #define MIN_SERVO_MOVEMENT_CM 0.00
 

@@ -93,7 +93,7 @@ void sendStateEvent(SystemEvent event) {
     }
 }
 
-void startStateMachineTask() {
+void createStateMachineTask() {
     stateEventQueue = xQueueCreate(10, sizeof(SystemEvent));
     if (!stateEventQueue) {
         Serial.println("Failed to create state queue!");
