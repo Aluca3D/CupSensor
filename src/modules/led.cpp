@@ -4,7 +4,6 @@
 #include "led.h"
 
 #include "config.h"
-#include "globals.h"
 
 void initializeStatusLED() {
     statusLED.begin();

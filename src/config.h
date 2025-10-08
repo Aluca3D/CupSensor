@@ -11,7 +11,11 @@
 
 // Servo
 #define SERVO_PIN 17
-#define SERVO_SPEED 10
+#define SERVO_SPEED 75
+#define COG_RADIUS_CM 0.625
+#define FULL_ROTATION_TIME 0.95
+#define MAX_SERVO_MOVEMENT_CM 10.00
+#define MIN_SERVO_MOVEMENT_CM 0.00
 
 // Touch Screen
 
