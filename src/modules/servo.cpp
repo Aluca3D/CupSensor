@@ -5,6 +5,7 @@
 #include "config.h"
 
 Servo servo;
+portMUX_TYPE servoDataMux = portMUX_INITIALIZER_UNLOCKED;
 
 unsigned long lastUpdate = 0;
 float distanceMoved = 0.0;
@@ -22,6 +23,7 @@ void initializeServo() {
     delay(1000);
 }
 
+// TODO: redo move servoFor/Back and/or add servoMove(int positionCM) / stopServo() / resetServo()
 void moveServoForwards() {
     isForwards = true;
     if (distanceMoved < MAX_SERVO_MOVEMENT_CM) {
@@ -46,15 +48,23 @@ void moveServoBackwards() {
     delay(SERVO_DELAY);
 }
 
-
 float getDistanceMoved() {
-    return distanceMoved * 10;
+    taskENTER_CRITICAL(&servoDataMux);
+    const float value = distanceMoved;
+    taskEXIT_CRITICAL(&servoDataMux);
+    return value;
 }
 
 bool getIsForwards() {
-    return isForwards;
+    taskENTER_CRITICAL(&servoDataMux);
+    const bool value = isForwards;
+    taskEXIT_CRITICAL(&servoDataMux);
+    return value;
 }
 
-float getServoSpeed() {
-    return servo.readMicroseconds();
+int getServoPulseWidth() {
+    taskENTER_CRITICAL(&servoDataMux);
+    const int value = servo.readMicroseconds();
+    taskEXIT_CRITICAL(&servoDataMux);
+    return value;
 }

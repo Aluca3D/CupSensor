@@ -20,8 +20,8 @@ void printBackSpace(const char *text) {
     for (;;) {
         sprintf(
             const_cast<char *>(printLine),
-            "SERVO: %-10f mm | isForwards %-1d | speed %-10f",
-            getDistanceMoved(), getIsForwards(), getServoSpeed()
+            "SERVO: %-10f mm | isForwards %-1d | speed %-10d",
+            getDistanceMoved() * 10, getIsForwards(), getServoPulseWidth()
         );
         Serial.print(printLine);
         printBackSpace(printLine);

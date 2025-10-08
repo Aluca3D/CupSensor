@@ -1,6 +1,10 @@
 ﻿#ifndef PROJECT_CUPSENSE_SERVO_H
 #define PROJECT_CUPSENSE_SERVO_H
 
+#include <Arduino.h>
+
+extern portMUX_TYPE servoDataMux;
+
 void initializeServo();
 
 void moveServoForwards();
@@ -11,6 +15,6 @@ float getDistanceMoved();
 
 bool getIsForwards();
 
-float getServoSpeed();
+int getServoPulseWidth();
 
 #endif //PROJECT_CUPSENSE_SERVO_H
