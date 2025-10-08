@@ -1,6 +1,8 @@
 #ifndef PROJECT_CUPSENSE_CONFIG_H
 #define PROJECT_CUPSENSE_CONFIG_H
 
+#define DEBUGGING true
+
 // Ultrasonic Sensor's
 #define US_ECHO 6
 #define US_TRIGGER 7
