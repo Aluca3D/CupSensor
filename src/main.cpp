@@ -14,6 +14,7 @@ Adafruit_NeoPixel statusLED(ONBOARD_RGB, ONBOARD_RGB, NEO_GRBW + NEO_KHZ800);
  * TODO: overwork/check stateMachine and handler (LED)
  * TODO: overwork servoMoveToo and updateServoMotion (queue based)
  * TODO: delete createDebuggingTask once sure everything works
+ * TODO: CHECK if reset needs to move backwords (or the init)
  */
 
 void setup() {
