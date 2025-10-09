@@ -7,11 +7,11 @@
 Servo servo;
 portMUX_TYPE servoDataMux = portMUX_INITIALIZER_UNLOCKED;
 
-unsigned long lastUpdate = 0;
+bool servoMoving = false;
+bool servoDirectionForward = true;
 float distanceMoved = 0.0;
-unsigned long currentMillis = millis();
-bool isForwards = true;
-float sLastUpdate = (currentMillis - lastUpdate) / 1000.0;
+float targetPositionCM = 0.0;
+unsigned long lastServoUpdate = 0;
 
 float linearSpeed() {
     return (2 * PI * COG_RADIUS_CM) / FULL_ROTATION_TIME;
@@ -19,33 +19,65 @@ float linearSpeed() {
 
 void initializeServo() {
     servo.attach(SERVO_PIN);
+    servoReset();
+}
+
+void servoStop() {
+    servo.writeMicroseconds(SERVO_SPEED_STOP);
+}
+
+void servoMoveToo(float positionCM) {
+    if (positionCM > MAX_SERVO_MOVEMENT_CM) positionCM = MAX_SERVO_MOVEMENT_CM;
+    if (positionCM < MIN_SERVO_MOVEMENT_CM) positionCM = MIN_SERVO_MOVEMENT_CM;
+
+    targetPositionCM = positionCM;
+
+    servoDirectionForward = (targetPositionCM > distanceMoved);
+
+    if (fabs(targetPositionCM - distanceMoved) > 0.05) {
+        servoMoving = true;
+        if (servoDirectionForward) {
+            servo.writeMicroseconds(SERVO_SPEED_FORWARDS);
+        } else {
+            servo.writeMicroseconds(SERVO_SPEED_BACKWARDS);
+        }
+        lastServoUpdate = millis();
+    } else {
+        servoStop();
+        servoMoving = false;
+    }
+}
+
+void updateServoMotion() {
+    if (!servoMoving) return;
+
+    const unsigned long currentMillis = millis();
+    const float deltaTime = (currentMillis - lastServoUpdate) / 1000.0;
+
+    if (deltaTime > 0) {
+        lastServoUpdate = currentMillis;
+
+        if (servoDirectionForward) {
+            distanceMoved += linearSpeed() * deltaTime;
+            if (distanceMoved >= targetPositionCM) {
+                distanceMoved = targetPositionCM;
+                servoStop();
+                servoMoving = false;
+            }
+        } else {
+            distanceMoved -= linearSpeed() * deltaTime;
+            if (distanceMoved <= targetPositionCM) {
+                distanceMoved = targetPositionCM;
+                servoStop();
+                servoMoving = false;
+            }
+        }
+    }
+}
+
+void servoReset() {
     servo.writeMicroseconds(SERVO_SPEED_BACKWARDS);
-    delay(1000);
-}
-
-// TODO: redo move servoFor/Back and/or add servoMove(int positionCM) / stopServo() / resetServo()
-void moveServoForwards() {
-    isForwards = true;
-    if (distanceMoved < MAX_SERVO_MOVEMENT_CM) {
-        lastUpdate = currentMillis;
-        servo.writeMicroseconds(SERVO_SPEED_FORWARDS);
-        distanceMoved += linearSpeed() * sLastUpdate;
-    } else {
-        servo.writeMicroseconds(SERVO_SPEED_STOP);
-    }
-    delay(SERVO_DELAY);
-}
-
-void moveServoBackwards() {
-    isForwards = false;
-    if (distanceMoved > MIN_SERVO_MOVEMENT_CM) {
-        lastUpdate = currentMillis;
-        servo.writeMicroseconds(SERVO_SPEED_BACKWARDS);
-        distanceMoved -= linearSpeed() * sLastUpdate;
-    } else {
-        servo.writeMicroseconds(SERVO_SPEED_STOP);
-    }
-    delay(SERVO_DELAY);
+    delay(5000);
 }
 
 float getDistanceMoved() {
@@ -57,7 +89,14 @@ float getDistanceMoved() {
 
 bool getIsForwards() {
     taskENTER_CRITICAL(&servoDataMux);
-    const bool value = isForwards;
+    const bool value = servoDirectionForward;
+    taskEXIT_CRITICAL(&servoDataMux);
+    return value;
+}
+
+bool getIsMoving() {
+    taskENTER_CRITICAL(&servoDataMux);
+    const bool value = servoMoving;
     taskEXIT_CRITICAL(&servoDataMux);
     return value;
 }

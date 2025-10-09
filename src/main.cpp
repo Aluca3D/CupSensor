@@ -13,23 +13,16 @@ Adafruit_NeoPixel statusLED(ONBOARD_RGB, ONBOARD_RGB, NEO_GRBW + NEO_KHZ800);
 void setup() {
     createDebuggingTask();
 
-    createStateMachineTask();
     createLEDTask();
+    createStateMachineTask();
     createInitTask();
 
-    sendStateEvent(EVENT_START);
-
-    // for testing
-    pinMode(37, INPUT_PULLUP);
-    pinMode(36, INPUT_PULLUP);
     initializeServo();
+    servoMoveToo(10);
+
+    sendStateEvent(EVENT_START);
 }
 
 void loop() {
-    // For Testing
-    if (digitalRead(37) == LOW) {
-        moveServoForwards();
-    } else {
-        moveServoBackwards();
-    }
+    updateServoMotion();
 }

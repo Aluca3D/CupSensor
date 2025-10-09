@@ -7,13 +7,19 @@ extern portMUX_TYPE servoDataMux;
 
 void initializeServo();
 
-void moveServoForwards();
+void servoMoveToo(float positionCM);
 
-void moveServoBackwards();
+void servoStop();
+
+void updateServoMotion();
+
+void servoReset();
 
 float getDistanceMoved();
 
 bool getIsForwards();
+
+bool getIsMoving();
 
 int getServoPulseWidth();
 
