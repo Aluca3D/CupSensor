@@ -5,17 +5,13 @@
 
 extern portMUX_TYPE servoDataMux;
 
-void initializeServo();
-
 void servoMoveToo(float positionCM);
 
 void servoAttach();
 
 void servoDetach();
 
-void updateServoMotion();
-
-void servoReset();
+void CreateServoTask();
 
 float getDistanceMoved();
 

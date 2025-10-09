@@ -3,29 +3,27 @@
 
 #include "servo.h"
 #include "config.h"
+#include "globals.h"
 
 Servo servo;
 portMUX_TYPE servoDataMux = portMUX_INITIALIZER_UNLOCKED;
 
-bool servoMoving = false;
-bool servoDirectionForward = true;
-float distanceMoved = 0.0;
-float targetPositionCM = 0.0;
-unsigned long lastServoUpdate = 0;
+static bool servoMoving = false;
+static bool servoDirectionForward = true;
+static float distanceMoved = 0.0f;
+static float targetPositionCM = 0.0f;
+static unsigned long lastServoUpdate = 0;
+
+
+static TaskHandle_t servoTaskHandle = nullptr;
 
 float linearSpeed() {
-    return (2 * PI * COG_RADIUS_CM) / FULL_ROTATION_TIME;
-}
-
-void initializeServo() {
-    servoAttach();
-    servo.writeMicroseconds(SERVO_SPEED_BACKWARDS);
-    delay(5000);
-    servoDetach();
+    return (2.0f * PI * COG_RADIUS_CM) / FULL_ROTATION_TIME;
 }
 
 void servoAttach() {
     servo.attach(SERVO_PIN);
+    delay(50);
 }
 
 void servoDetach() {
@@ -34,103 +32,152 @@ void servoDetach() {
     servo.detach();
 }
 
-void servoReset() {
-    servoMoveToo(0.0);
-    if (distanceMoved == 0.0) {
-        servo.writeMicroseconds(SERVO_SPEED_BACKWARDS);
-        delay(2000);
-    }
-}
-
 void servoMoveToo(float positionCM) {
     if (positionCM > MAX_SERVO_MOVEMENT_CM) positionCM = MAX_SERVO_MOVEMENT_CM;
     if (positionCM < MIN_SERVO_MOVEMENT_CM) positionCM = MIN_SERVO_MOVEMENT_CM;
 
     servoAttach();
 
-    targetPositionCM = positionCM;
-    servoDirectionForward = (targetPositionCM > distanceMoved);
+    bool needToStart = false;
+    int pulseToSend = SERVO_SPEED_STOP;
+    {
+        portENTER_CRITICAL(&servoDataMux);
+        targetPositionCM = positionCM;
+        const float currentDistance = distanceMoved;
+        servoDirectionForward = (targetPositionCM > currentDistance);
+        const float remainingDistance = fabsf(targetPositionCM - currentDistance);
 
-    const float remainingDistance = fabs(targetPositionCM - distanceMoved);
-
-    if (remainingDistance > 0.05) {
-        servoMoving = true;
-
-        int pulse;
-
-        // 🔹 Soft stop: slow when within 0.5 cm
-        if (remainingDistance < 0.5) {
-            pulse = servoDirectionForward
-                        ? SERVO_SPEED_FORWARDS - 20 // slightly slower
-                        : SERVO_SPEED_BACKWARDS + 20;
+        if (remainingDistance > 0.05f) {
+            servoMoving = true;
+            lastServoUpdate = millis();
+            needToStart = true;
+            pulseToSend = servoDirectionForward ? SERVO_SPEED_FORWARDS : SERVO_SPEED_BACKWARDS;
         } else {
-            pulse = servoDirectionForward
-                        ? SERVO_SPEED_FORWARDS
-                        : SERVO_SPEED_BACKWARDS;
+            servoMoving = false;
         }
+        portEXIT_CRITICAL(&servoDataMux);
+    }
 
-        servo.writeMicroseconds(pulse);
-        lastServoUpdate = millis();
+    if (needToStart) {
+        servo.writeMicroseconds(pulseToSend);
     } else {
         servoDetach();
-        servoMoving = false;
     }
 }
 
+[[noreturn]] static void servoTask(void *pvParameters) {
+    (void) pvParameters;
 
-void updateServoMotion() {
-    if (!servoMoving) return;
+    constexpr TickType_t delayTicksWhenIdle = pdMS_TO_TICKS(50);
 
-    const unsigned long currentMillis = millis();
-    const float deltaTime = (currentMillis - lastServoUpdate) / 1000.0;
+    for (;;) {
+        bool isMovingLocal = false;
+        bool isForwardLocal = true;
+        float localDistance = 0.0f;
+        float localTarget = 0.0f;
+        unsigned long localLastUpdate = 0;
 
-    if (deltaTime > 0) {
-        lastServoUpdate = currentMillis;
+        portENTER_CRITICAL(&servoDataMux);
+        isMovingLocal = servoMoving;
+        isForwardLocal = servoDirectionForward;
+        localDistance = distanceMoved;
+        localTarget = targetPositionCM;
+        localLastUpdate = lastServoUpdate;
+        portEXIT_CRITICAL(&servoDataMux);
 
-        if (servoDirectionForward) {
-            distanceMoved += linearSpeed() * deltaTime;
-            if (distanceMoved >= targetPositionCM) {
-                distanceMoved = targetPositionCM;
-                servoDetach();
-                servoMoving = false;
+        if (!isMovingLocal) {
+            vTaskDelay(delayTicksWhenIdle);
+            continue;
+        }
+
+        const unsigned long nowMillis = millis();
+        float deltaTime = 0.0f;
+        if (nowMillis > localLastUpdate) {
+            deltaTime = (nowMillis - localLastUpdate) / 1000.0f;
+        } else {
+            deltaTime = 0.001f;
+        }
+
+        const float speed = linearSpeed();
+        float newDistance = localDistance;
+        bool reachedTarget = false;
+
+        if (isForwardLocal) {
+            newDistance += speed * deltaTime;
+            if (newDistance >= localTarget) {
+                newDistance = localTarget;
+                reachedTarget = true;
             }
         } else {
-            distanceMoved -= linearSpeed() * deltaTime;
-            if (distanceMoved <= targetPositionCM) {
-                distanceMoved = targetPositionCM;
-                servoDetach();
-                servoMoving = false;
+            newDistance -= speed * deltaTime;
+            if (newDistance <= localTarget) {
+                newDistance = localTarget;
+                reachedTarget = true;
             }
         }
-        if (distanceMoved > MAX_SERVO_MOVEMENT_CM) distanceMoved = MAX_SERVO_MOVEMENT_CM;
-        if (distanceMoved < MIN_SERVO_MOVEMENT_CM) distanceMoved = MIN_SERVO_MOVEMENT_CM;
+
+        if (newDistance > MAX_SERVO_MOVEMENT_CM) newDistance = MAX_SERVO_MOVEMENT_CM;
+        if (newDistance < MIN_SERVO_MOVEMENT_CM) newDistance = MIN_SERVO_MOVEMENT_CM;
+
+        bool shouldDetach = false;
+
+        portENTER_CRITICAL(&servoDataMux);
+        distanceMoved = newDistance;
+        lastServoUpdate = nowMillis;
+
+        if (reachedTarget) {
+            servoMoving = false;
+            shouldDetach = true;
+        }
+        portEXIT_CRITICAL(&servoDataMux);
+
+        if (shouldDetach) {
+            servoDetach();
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
+    vTaskDelete(nullptr);
+}
+
+void CreateServoTask() {
+    if (servoTaskHandle == nullptr) {
+        xTaskCreatePinnedToCore(
+            servoTask,
+            "ServoTask",
+            4096,
+            nullptr,
+            PRIORITY_NORMAL,
+            &servoTaskHandle,
+            CORE_ID_0
+        );
     }
 }
 
 float getDistanceMoved() {
-    taskENTER_CRITICAL(&servoDataMux);
+    portENTER_CRITICAL(&servoDataMux);
     const float value = distanceMoved;
-    taskEXIT_CRITICAL(&servoDataMux);
+    portEXIT_CRITICAL(&servoDataMux);
     return value;
 }
 
 bool getIsForwards() {
-    taskENTER_CRITICAL(&servoDataMux);
+    portENTER_CRITICAL(&servoDataMux);
     const bool value = servoDirectionForward;
-    taskEXIT_CRITICAL(&servoDataMux);
+    portEXIT_CRITICAL(&servoDataMux);
     return value;
 }
 
 bool getIsMoving() {
-    taskENTER_CRITICAL(&servoDataMux);
+    portENTER_CRITICAL(&servoDataMux);
     const bool value = servoMoving;
-    taskEXIT_CRITICAL(&servoDataMux);
+    portEXIT_CRITICAL(&servoDataMux);
     return value;
 }
 
 int getServoPulseWidth() {
-    taskENTER_CRITICAL(&servoDataMux);
+    portENTER_CRITICAL(&servoDataMux);
     const int value = servo.readMicroseconds();
-    taskEXIT_CRITICAL(&servoDataMux);
+    portEXIT_CRITICAL(&servoDataMux);
     return value;
 }
