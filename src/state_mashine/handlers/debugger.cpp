@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-#include "debuger.h"
+#include "debugger.h"
 
 #include "config.h"
 #include "globals.h"
@@ -15,6 +15,7 @@ void printBackSpace(const char *text) {
 
 // Todo add all debug info into here
 [[noreturn]] void debuggerTask(void *parameters) {
+    Serial.begin(9600);
     Serial.printf("debuggerTask started on core %d\n", xPortGetCoreID());
     constexpr char printLine[256] = "";
     for (;;) {

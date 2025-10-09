@@ -1,6 +1,7 @@
 #ifndef PROJECT_CUPSENSE_CONFIG_H
 #define PROJECT_CUPSENSE_CONFIG_H
 
+// Debugging
 #define DEBUGGING true
 
 // Ultrasonic Sensor's
@@ -13,9 +14,9 @@
 
 // Servo
 #define SERVO_PIN 17
-#define SERVO_SPEED_STOP 1472 // 90°
-#define SERVO_SPEED_FORWARDS 1628 // 105°
-#define SERVO_SPEED_BACKWARDS 1317 // 75°
+#define SERVO_SPEED_STOP 1472
+#define SERVO_SPEED_FORWARDS 1628
+#define SERVO_SPEED_BACKWARDS 1317
 #define SERVO_DELAY 95
 #define COG_RADIUS_CM 0.65
 #define FULL_ROTATION_TIME 0.92

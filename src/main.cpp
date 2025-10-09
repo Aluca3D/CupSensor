@@ -4,16 +4,13 @@
 #include "config.h"
 #include "modules/servo.h"
 #include "state_mashine/state.h"
-#include "state_mashine/handlers/debuger.h"
+#include "state_mashine/handlers/debugger.h"
 #include "state_mashine/handlers/initializing.h"
 #include "state_mashine/handlers/statusLED.h"
 
 Adafruit_NeoPixel statusLED(ONBOARD_RGB, ONBOARD_RGB, NEO_GRBW + NEO_KHZ800);
 
 void setup() {
-    Serial.begin(9600);
-    Serial.println("Starting...");
-
     createDebuggingTask();
 
     createStateMachineTask();
