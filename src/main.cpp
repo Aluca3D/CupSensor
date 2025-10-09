@@ -11,7 +11,9 @@
 Adafruit_NeoPixel statusLED(ONBOARD_RGB, ONBOARD_RGB, NEO_GRBW + NEO_KHZ800);
 
 void setup() {
-    createDebuggingTask();
+    Serial.begin(9600);
+
+    createDebuggingTask(); // Todo delete later
 
     createLEDTask();
     createStateMachineTask();

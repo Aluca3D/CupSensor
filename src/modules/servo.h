@@ -9,7 +9,9 @@ void initializeServo();
 
 void servoMoveToo(float positionCM);
 
-void servoStop();
+void servoAttach();
+
+void servoDetach();
 
 void updateServoMotion();
 

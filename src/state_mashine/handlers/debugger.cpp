@@ -13,9 +13,7 @@ void printBackSpace(const char *text) {
     }
 }
 
-// Todo add all debug info into here
 [[noreturn]] void debuggerTask(void *parameters) {
-    Serial.begin(9600);
     Serial.printf("debuggerTask started on core %d\n", xPortGetCoreID());
     constexpr char printLine[256] = "";
     for (;;) {
@@ -32,15 +30,13 @@ void printBackSpace(const char *text) {
 }
 
 void createDebuggingTask() {
-    if (DEBUGGING) {
-        xTaskCreatePinnedToCore(
-            &debuggerTask,
-            "debuggerTask",
-            4096,
-            nullptr,
-            PRIORITY_IDLE,
-            nullptr,
-            CORE_ID_0
-        );
-    }
+    xTaskCreatePinnedToCore(
+        &debuggerTask,
+        "debuggerTask",
+        4096,
+        nullptr,
+        PRIORITY_IDLE,
+        nullptr,
+        CORE_ID_0
+    );
 }
