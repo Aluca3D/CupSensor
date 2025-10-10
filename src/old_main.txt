@@ -1,0 +1,471 @@
+// =================================================================
+//                      BIBLIOTHEKEN
+// =================================================================
+#include <SPI.h>
+#include <TFT_eSPI.h>           // https://github.com/Bodmer/tft_eSPI || User_Setup.h = https://RandomNerdTutorials.com/cyd/ or https://RandomNerdTutorials.com/esp32-tft/
+
+#include <Adafruit_GFX.h>
+#include <Adafruit_ILI9341.h>
+#include <XPT2046_Touchscreen.h>// https://github.com/PaulStoffregen/XPT2046_Touchscreen and then use "pio pkg install -l <path>" on the zip file
+
+#include <ESP32Servo.h>
+#include <Adafruit_NeoPixel.h>
+// =================================================================
+//                      HARDWARE PINS & KONFIGURATION
+// =================================================================
+#define SERVO_PIN   16
+#define US_TRIGGER  17
+#define US_ECHO     18
+#define TOUCH_IRQ   4   // T_IRQ
+#define TOUCH_MISO  5   // T_DO
+#define TOUCH_MOSI  6   // T_DIN
+#define TOUCH_CS    7   // T_CS
+#define TOUCH_CLK   8   // T_CLK
+#define SCREEN_MISO   14
+#define SCREEN_LED    45
+#define SCREEN_SCK    13
+#define SCREEN_MOSI   12
+#define SCREEN_DC     11
+#define SCREEN_RESET  10
+#define SCREEN_CS      9
+#define ONBOARD_RGB   38
+#define RELAY_0 48
+#define RELAY_1 47
+#define RELAY_2 21
+
+// --- Globale Konfiguration ---
+#define USE_DUMMY_DISTANCE 1    // 0 = Sensor; 1 = dummy values;
+#define SCREEN_WIDTH  320
+#define SCREEN_HEIGHT 240
+const float EDGE_DETECTION_THRESHOLD_CM = 3.5;
+const float FILL_LEVEL_FROM_TOP_CM = 1.5;
+const long SCAN_INTERVAL_MS = 50;
+const long FILL_CHECK_INTERVAL_MS = 100;
+const int SERVO_SCAN_START_ANGLE = 70;
+const int SERVO_SCAN_END_ANGLE = 160;
+const int SERVO_HOME_ANGLE = 90;
+const unsigned long PULSEIN_TIMEOUT_US = 25000;
+const float MAX_REASONABLE_DISTANCE = 40.0;
+
+// =================================================================
+//                      GLOBALE OBJEKTE & ZUSTÄNDE
+// =================================================================
+Adafruit_ILI9341 tft = Adafruit_ILI9341(
+    SCREEN_CS, SCREEN_DC, SCREEN_MOSI, SCREEN_SCK, SCREEN_RESET, SCREEN_MISO
+);
+SPIClass tsSPI = SPIClass(VSPI);
+XPT2046_Touchscreen ts(TOUCH_CS, TOUCH_IRQ);
+
+Adafruit_NeoPixel statusLED(ONBOARD_RGB, ONBOARD_RGB, NEO_GRBW + NEO_KHZ800);
+Servo servoMotor;
+
+enum SystemState {
+    INITIALIZING, IDLE, SCANNING_FOR_EDGE, POSITIONING_FOR_FILL,
+    FILLING, FINISHED, ABORTED
+};
+
+SystemState currentState = INITIALIZING;
+
+// --- Globale Variablen ---
+unsigned long lastActionTime = 0;
+float setupHeight_cm = 0.0;
+float objectHeight_cm = 0.0;
+float lastDistanceReading_cm = 0.0;
+float smoothedDistance_cm = 0.0;
+int currentServoAngle = SERVO_HOME_ANGLE;
+int pressedButton = 0;
+
+// --- Button Layout Definition (X, Y, Breite, Höhe) ---
+const int FLUID_BUTTONS[][4] = {
+    {40, 40, 240, 50}, // Button 0
+    {40, 100, 240, 50}, // Button 1
+    {40, 160, 240, 50}, // Button 2
+};
+
+const int NUM_FLUID_BUTTONS = sizeof(FLUID_BUTTONS) / sizeof(FLUID_BUTTONS[0]);
+
+const int ABORT_BUTTON[] = {80, 80, 140, 120};
+
+// Editable list of dummy readings (cm)
+#if USE_DUMMY_DISTANCE
+static const float dummyDistances[] = {
+    0.0, 1.0, 2.0, 3.0, 4.0,
+    5.0, 6.0, 7.0, 8.0, 9.0,
+    10.0, 11.0, 12.0, 13.0, 14.0,
+    15.0, 16.0, 17.0, 18.0, 19.0,
+    20.0, 30.0, 30.5, 31.0, 31.5,
+    32.0, 32.5, 33.0, 33.5, 34.0
+};
+static size_t dummyIndex = 0;
+#endif
+
+// =================================================================
+//                      KERN- & HILFSFUNKTIONEN
+// =================================================================
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+float calculateVerticalHeight(float diagonal_distance, int servo_angle_deg) {
+    float angle_from_vertical_deg = fabs(90.0 - servo_angle_deg);
+    float angle_from_vertical_rad = angle_from_vertical_deg * (M_PI / 180.0);
+    return diagonal_distance * cos(angle_from_vertical_rad);
+}
+
+float calculateObjectHeight(float setup_height, float vertical_height) {
+    return setup_height - vertical_height;
+}
+
+// --- Hardware- & UI-Steuerung ---
+void setStatusLED(uint32_t color) {
+    statusLED.setPixelColor(0, color);
+    statusLED.show();
+}
+
+float getDistance() {
+#if USE_DUMMY_DISTANCE
+    // ---- Simulated path -----------------------------------------
+    float distance = dummyDistances[dummyIndex++];
+
+    if (dummyIndex >= sizeof(dummyDistances) / sizeof(dummyDistances[0])) {
+        dummyIndex = 0; // wrap around and loop forever
+    }
+
+    Serial.print(distance);
+    Serial.println(" cm (dummy)");
+    return distance;
+
+#else
+    // ---- Real‑sensor path ---------------------------------------
+    digitalWrite(US_TRIGGER, LOW);
+    delayMicroseconds(2);
+    digitalWrite(US_TRIGGER, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(US_TRIGGER, LOW);
+
+    long duration = pulseIn(US_ECHO, HIGH, PULSEIN_TIMEOUT_US);
+    if (duration == 0) {
+        Serial.println("no echo");
+        return 0.0; // timeout / no echo
+    }
+
+    float distance = (duration * 0.0343) / 2.0; // convert μs → cm
+    if (distance > MAX_REASONABLE_DISTANCE) {
+        Serial.println("ignore");
+        return 0.0; // bogus reading, ignore
+    }
+
+    Serial.print(distance);
+    Serial.println(" cm");
+    return distance;
+#endif
+}
+
+float getAverageDistance(int numReadings) {
+    float totalDistance = 0.0;
+    int validReadings = 0;
+
+    for (int i = 0; i < numReadings; i++) {
+        float singleReading = getDistance();
+        if (singleReading > 0.0) {
+            totalDistance += singleReading;
+            validReadings++;
+        }
+        // A small delay between pings to avoid echo interference
+        delay(10);
+    }
+
+    if (validReadings > 0) {
+        return totalDistance / validReadings;
+    } else {
+        return 0.0; // Return 0.0 if all readings failed
+    }
+}
+
+void startPump(int PIN) {
+    digitalWrite(PIN, HIGH);
+}
+
+void stopPump(int PIN) {
+    digitalWrite(PIN, LOW);
+}
+
+void drawButton(int x, int y, int width, int height, const char *name, uint16_t buttonColor) {
+    tft.fillRect(x, y, width, height, buttonColor);
+    tft.drawRect(x, y, width, height, tft.color565(255, 255, 255));
+    tft.setCursor(x + 10, y + 15);
+    tft.setTextColor(tft.color565(255, 255, 255));
+    tft.setTextSize(2);
+    tft.print(name);
+}
+
+void drawFluidButtons() {
+    for (int i = 0; i < NUM_FLUID_BUTTONS; i++) {
+        int x = FLUID_BUTTONS[i][0];
+        int y = FLUID_BUTTONS[i][1];
+        int width = FLUID_BUTTONS[i][2];
+        int height = FLUID_BUTTONS[i][3];
+
+        switch (i) {
+            case 0:
+                drawButton(x, y, width, height, "Water", tft.color565(0, 0, 255));
+                break;
+            case 1:
+                drawButton(x, y, width, height, "Apple Juice", tft.color565(165, 42, 42));
+                break;
+            case 2:
+                drawButton(x, y, width, height, "Fanta", tft.color565(253, 218, 13));
+                break;
+        }
+    }
+}
+
+void clearFluidButtons(uint16_t backgroundColor) {
+    for (int i = 0; i < NUM_FLUID_BUTTONS; i++) {
+        int x = FLUID_BUTTONS[i][0];
+        int y = FLUID_BUTTONS[i][1];
+        int width = FLUID_BUTTONS[i][2];
+        int height = FLUID_BUTTONS[i][3];
+
+        // Clear the button area by filling it with the background color
+        tft.fillRect(x, y, width, height, backgroundColor);
+    }
+}
+
+void drawAbortButtons() {
+    int x = ABORT_BUTTON[0];
+    int y = ABORT_BUTTON[1];
+    int width = ABORT_BUTTON[2];
+    int height = ABORT_BUTTON[3];
+    drawButton(x, y, width, height, "Abort", tft.color565(255, 0, 0));
+}
+
+void clearAbortButtons(uint16_t backgroundColor) {
+    int x = ABORT_BUTTON[0];
+    int y = ABORT_BUTTON[1];
+    int width = ABORT_BUTTON[2];
+    int height = ABORT_BUTTON[3];
+    tft.fillRect(x, y, width, height, backgroundColor);
+}
+
+void updateDisplay() {
+    static SystemState lastState = INITIALIZING;
+    if (currentState == lastState) return;
+    switch (currentState) {
+        case FINISHED:
+            tft.setCursor(0, 0);
+            tft.print("FINISHED");
+            clearAbortButtons(tft.color565(0, 0, 0));
+            break;
+        case IDLE:
+            tft.fillScreen(tft.color565(0, 0, 0));
+            drawFluidButtons();
+            break;
+        case SCANNING_FOR_EDGE:
+            drawAbortButtons();
+            break;
+        case ABORTED:
+            tft.setCursor(0, 0);
+            tft.print("ABORTED");
+            clearAbortButtons(tft.color565(0, 0, 0));
+            break;
+    }
+
+    lastState = currentState;
+}
+
+void getCurrentStatePrinted() {
+    static SystemState lastState = INITIALIZING;
+    if (currentState == lastState) return;
+
+    switch (currentState) {
+        case INITIALIZING:
+            Serial.println("Initializing");
+            break;
+        case IDLE:
+            Serial.println("Idle");
+            break;
+        case SCANNING_FOR_EDGE:
+            Serial.println("Scanning for Edge");
+            break;
+        case POSITIONING_FOR_FILL:
+            Serial.println("Positioning for Fill");
+            break;
+        case FILLING:
+            Serial.println("Filling");
+            break;
+        case FINISHED:
+            Serial.println("Finished");
+            break;
+        case ABORTED:
+            Serial.println("Aborted");
+            break;
+    }
+
+    lastState = currentState;
+}
+
+// =================================================================
+//                      ZUSTANDS-LOGIK
+// =================================================================
+void checkUserInputs() {
+    if (ts.touched()) {
+        TS_Point p = ts.getPoint();
+        int x = map(p.x, 100, 4000, 0, SCREEN_WIDTH - 1);
+        int y = SCREEN_HEIGHT - map(p.y, 150, 3900, 0, SCREEN_HEIGHT - 1);
+        int z = p.z;
+
+        if (currentState == IDLE) {
+            for (int i = 0; i < NUM_FLUID_BUTTONS; i++) {
+                if (x >= FLUID_BUTTONS[i][0] && x <= FLUID_BUTTONS[i][0] + FLUID_BUTTONS[i][2] &&
+                    y >= FLUID_BUTTONS[i][1] && y <= FLUID_BUTTONS[i][1] + FLUID_BUTTONS[i][3]) {
+                    pressedButton = i;
+                    clearFluidButtons(tft.color565(0, 0, 0));
+                    currentState = SCANNING_FOR_EDGE;
+                }
+            }
+        }
+
+        if (currentState != IDLE) {
+            if (x >= ABORT_BUTTON[0] && x <= ABORT_BUTTON[0] + ABORT_BUTTON[2] &&
+                y >= ABORT_BUTTON[1] && y <= ABORT_BUTTON[1] + ABORT_BUTTON[3]) {
+                clearAbortButtons(tft.color565(0, 0, 0));
+                currentState = ABORTED;
+            }
+        }
+    }
+}
+
+void handleScanning() {
+    float currentDistance = getAverageDistance(5);
+
+    if (currentDistance == 0.0) {
+        currentServoAngle++;
+        servoMotor.write(currentServoAngle);
+        return;
+    }
+
+    if (lastDistanceReading_cm > 0.0 && (lastDistanceReading_cm - currentDistance) > EDGE_DETECTION_THRESHOLD_CM) {
+        objectHeight_cm = calculateObjectHeight(setupHeight_cm,
+                                                calculateVerticalHeight(currentDistance, currentServoAngle));
+        smoothedDistance_cm = currentDistance;
+        currentState = POSITIONING_FOR_FILL;
+        return;
+    }
+
+    lastDistanceReading_cm = currentDistance;
+
+    currentServoAngle++;
+    if (currentServoAngle > SERVO_SCAN_END_ANGLE) {
+        servoMotor.write(SERVO_HOME_ANGLE);
+        currentState = ABORTED;
+    } else {
+        servoMotor.write(currentServoAngle);
+    }
+}
+
+void handleFilling() {
+    if (millis() - lastActionTime < FILL_CHECK_INTERVAL_MS) return;
+    lastActionTime = millis();
+    float waterHeight = calculateObjectHeight(setupHeight_cm, calculateVerticalHeight(getDistance(), SERVO_HOME_ANGLE));
+    if (waterHeight >= (objectHeight_cm - FILL_LEVEL_FROM_TOP_CM)) {
+        stopPump(RELAY_0);
+        stopPump(RELAY_1);
+        stopPump(RELAY_2);
+        currentState = FINISHED;
+    } else {
+        switch (pressedButton) {
+            case 0:
+                startPump(RELAY_0);
+                break;
+            case 1:
+                startPump(RELAY_1);
+                break;
+            case 2:
+                startPump(RELAY_2);
+                break;
+        }
+    }
+}
+
+void handleFinished() {
+    setStatusLED(statusLED.Color(0, 255, 0));
+    static unsigned long finishedTime = 0;
+    if (finishedTime == 0) finishedTime = millis();
+    if (millis() - finishedTime > 4000) {
+        finishedTime = 0;
+        currentState = IDLE;
+    }
+}
+
+// =================================================================
+//                      HAUPTPROGRAMM (SETUP & LOOP)
+// =================================================================
+void setup() {
+    Serial.begin(115200);
+
+    pinMode(RELAY_0, OUTPUT);
+    pinMode(RELAY_1, OUTPUT);
+    pinMode(RELAY_2, OUTPUT);
+    pinMode(US_TRIGGER, OUTPUT);
+    pinMode(US_ECHO, INPUT);
+    pinMode(SCREEN_LED, OUTPUT);
+    digitalWrite(SCREEN_LED, HIGH);
+
+    servoMotor.attach(SERVO_PIN);
+    servoMotor.write(SERVO_HOME_ANGLE);
+    delay(500);
+
+    statusLED.begin();
+    statusLED.setBrightness(125);
+
+    tft.begin();
+    tft.setRotation(1);
+    tsSPI.begin(TOUCH_CLK, TOUCH_MISO, TOUCH_MOSI, TOUCH_CS);
+    ts.begin(tsSPI);
+    ts.setRotation(1);
+
+    delay(500);
+    currentState = INITIALIZING;
+}
+
+void loop() {
+    checkUserInputs();
+    updateDisplay();
+
+    // Debugging
+    getCurrentStatePrinted();
+
+    switch (currentState) {
+        case INITIALIZING:
+            if (USE_DUMMY_DISTANCE) {
+                setupHeight_cm = 25;
+            } else {
+                setupHeight_cm = calculateVerticalHeight(getDistance(), SERVO_HOME_ANGLE);
+            }
+            currentState = IDLE;
+            break;
+        case SCANNING_FOR_EDGE:
+            handleScanning();
+            break;
+        case POSITIONING_FOR_FILL:
+            servoMotor.write(SERVO_HOME_ANGLE);
+            currentState = FILLING;
+            break;
+        case FILLING:
+            handleFilling();
+            break;
+        case FINISHED:
+            handleFinished();
+            break;
+        case IDLE:
+            servoMotor.write(SERVO_HOME_ANGLE);
+            setStatusLED(statusLED.Color(255, 255, 0));
+            break;
+        case ABORTED:
+            setStatusLED(statusLED.Color(255, 0, 0));
+            delay(2000);
+            currentState = IDLE;
+            break;
+    }
+}
