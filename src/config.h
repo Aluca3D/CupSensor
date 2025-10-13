@@ -2,15 +2,19 @@
 #define PROJECT_CUPSENSE_CONFIG_H
 
 // Ultrasonic Sensor's
-#define US_ECHO 6
-#define US_TRIGGER 7
+#define US_WATER_ECHO_PIN     42
+#define US_WATER_TRIGGER_PIN  41
+#define US_HEIGHT_ECHO_PIN    40
+#define US_HEIGHT_TRIGGER_PIN 39
 
 // Builtin RGB LED
-#define ONBOARD_RGB 38
+#define ONBOARD_RGB_PIN 38
+
 #define ONBOARD_RGB_BRIGHTNESS 10
 
 // Servo
-#define SERVO_PIN 17
+#define SERVO_PIN 15
+
 #define SERVO_SPEED_STOP 1477
 #define SERVO_SPEED_FORWARDS 1628
 #define SERVO_SPEED_BACKWARDS 1317
@@ -19,6 +23,28 @@
 #define MAX_SERVO_MOVEMENT_CM 10.00
 #define MIN_SERVO_MOVEMENT_CM 0.00
 
-// Touch Screen
+// Touch
+#define TOUCH_IRQ_PIN     4
+#define TOUCH_MISO_PIN    5
+#define TOUCH_MOSI_PIN    6
+#define TOUCH_CS_PIN      7
+#define TOUCH_CLK_PIN     8
+// Screen
+#define SCREEN_MISO_PIN   14
+#define SCREEN_LED_PIN    45
+#define SCREEN_SCK_PIN    13
+#define SCREEN_MOSI_PIN   12
+#define SCREEN_DC_PIN     11
+#define SCREEN_RESET_PIN  10
+#define SCREEN_CS_PIN      9
+
+#define SCREEN_WIDTH 320
+#define SCREEN_HEIGHT 240
+#define FONT_SIZE 2
+
+// Pumps
+#define RELAY_0_PIN 48
+#define RELAY_1_PIN 47
+#define RELAY_2_PIN 21
 
 #endif //PROJECT_CUPSENSE_CONFIG_H
