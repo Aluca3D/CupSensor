@@ -11,7 +11,7 @@ void servoAttach();
 
 void servoDetach();
 
-void CreateServoTask();
+void createServoTask();
 
 float getDistanceMoved();
 

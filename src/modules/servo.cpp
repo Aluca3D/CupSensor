@@ -140,7 +140,7 @@ void servoMoveToo(float positionCM) {
     vTaskDelete(nullptr);
 }
 
-void CreateServoTask() {
+void createServoTask() {
     if (servoTaskHandle == nullptr) {
         xTaskCreatePinnedToCore(
             servoTask,

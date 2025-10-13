@@ -20,7 +20,7 @@ void setup() {
     createStateMachineTask();
     createInitTask();
 
-    CreateServoTask();
+    createServoTask();
 
     sendStateEvent(EVENT_START);
 }
