@@ -10,8 +10,6 @@
 [[noreturn]] void initializingTask(void *parameters) {
     Serial.printf("initializingTask started on core %d\n", xPortGetCoreID());
 
-    initializeUltraSonicSensor(US_TRIGGER, US_ECHO);
-
     SystemState lastSeenState = STATE_OFF;
 
     for (;;) {
