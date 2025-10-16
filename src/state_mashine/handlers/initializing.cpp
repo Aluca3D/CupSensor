@@ -18,7 +18,11 @@
             lastSeenState = current;
 
             if (current == STATE_INITIALIZING) {
-                // Stuff that needs to be done on init.
+                /*
+                 * Get Initial Height
+                 * "Reset" Servo Height
+                 * Set Screen to Idle?
+                 */
                 sendStateEvent(EVENT_DONE);
             }
         }

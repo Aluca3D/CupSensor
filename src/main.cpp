@@ -16,6 +16,7 @@ Adafruit_NeoPixel statusLED(ONBOARD_RGB_PIN, ONBOARD_RGB_PIN, NEO_GRBW + NEO_KHZ
 
 /*
  * TODO: overwork/check stateMachine and handler (LED)
+ * TODO: overwork/Add Debugger (Serial print into Task/s)
  */
 
 Adafruit_ILI9341 tft(
