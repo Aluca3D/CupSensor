@@ -1,6 +1,4 @@
 ﻿#include <Arduino.h>
-#include <Adafruit_NeoPixel.h>
-
 
 #include "statusLED.h"
 
@@ -24,30 +22,30 @@
 
             switch (current) {
                 case STATE_OFF:
-                    setStatusLED(Adafruit_NeoPixel::Color(0, 0, 0)); // OFF
+                    setStatusLED(STATUS_OFF);
                     break;
                 case STATE_INITIALIZING:
-                    setStatusLED(Adafruit_NeoPixel::Color(255, 0, 255)); // Magenta
+                    setStatusLED(STATUS_MAGENTA);
                     break;
                 case STATE_IDLE:
-                    setStatusLED(Adafruit_NeoPixel::Color(255, 255, 0)); // Yellow
+                    setStatusLED(STATUS_YELLOW);
                     break;
                 case STATE_SCANNING_HEIGHT:
                 case STATE_SCANNING_FLUID:
-                    setStatusLED(Adafruit_NeoPixel::Color(0, 255, 255)); // Cyan
+                    setStatusLED(STATUS_CYAN);
                     break;
                 case STATE_RESET_POSITION:
                 case STATE_FILLING:
-                    setStatusLED(Adafruit_NeoPixel::Color(0, 0, 255)); // Blue
+                    setStatusLED(STATUS_BLUE);
                     break;
                 case STATE_ERROR:
-                    setStatusLED(Adafruit_NeoPixel::Color(255, 0, 0)); // Red
+                    setStatusLED(STATUS_RED);
                     break;
                 case STATE_FINISHED:
-                    setStatusLED(Adafruit_NeoPixel::Color(0, 255, 0)); // Green
+                    setStatusLED(STATUS_GREEN);
                     break;
                 default:
-                    setStatusLED(Adafruit_NeoPixel::Color(0, 0, 0)); // OFF
+                    setStatusLED(STATUS_WHITE);
                     break;
             }
         }

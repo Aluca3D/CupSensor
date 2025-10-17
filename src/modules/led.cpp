@@ -10,7 +10,7 @@ void initializeStatusLED() {
     statusLED.setBrightness(ONBOARD_RGB_BRIGHTNESS);
 }
 
-void setStatusLED(uint32_t color) {
+void setStatusLED(StatusColor color) {
     statusLED.setPixelColor(0, color);
     statusLED.show();
 }
