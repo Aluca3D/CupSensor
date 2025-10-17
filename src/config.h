@@ -24,11 +24,11 @@
 #define MIN_SERVO_MOVEMENT_CM 0.00
 
 // Touch
-#define TOUCH_IRQ_PIN     4
-#define TOUCH_MISO_PIN    5
-#define TOUCH_MOSI_PIN    6
-#define TOUCH_CS_PIN      7
-#define TOUCH_CLK_PIN     8
+#define TOUCH_IRQ_PIN 4
+#define TOUCH_DO_PIN  5
+#define TOUCH_DIN_PIN 6
+#define TOUCH_CS_PIN  7
+#define TOUCH_CLK_PIN 8
 // Screen
 #define SCREEN_MISO_PIN   14
 #define SCREEN_LED_PIN    45
@@ -38,9 +38,16 @@
 #define SCREEN_RESET_PIN  10
 #define SCREEN_CS_PIN      9
 
+#define SCREEN_ROTATION 1
 #define SCREEN_WIDTH 320
 #define SCREEN_HEIGHT 240
 #define FONT_SIZE 2
+#define TOUCH_PRESSURE_PRESSED 4150
+
+#define TOUCH_LEFT  3700
+#define TOUCH_RIGHT  500
+#define TOUCH_TOP   3350
+#define TOUCH_BOTTOM 700
 
 // Pumps
 #define RELAY_0_PIN 48

@@ -16,6 +16,8 @@ extern QueueHandle_t screenEventQueue;
 
 void sendScreenEvent(ScreenState activeScreen);
 
+void createCheckUserInputTask();
+
 void createUpdateScreenTask();
 
 #endif //CUPSENSOR_SCREENHANDLER_H
