@@ -9,6 +9,7 @@ void initializeTouchScreen() {
     digitalWrite(SCREEN_LED_PIN, HIGH);
     tft.begin();
     tft.setRotation(SCREEN_ROTATION);
+    setScreenColor(COLOR_OFF);
     // Touch
     tsSPI.begin(
         TOUCH_CLK_PIN, TOUCH_DO_PIN,
@@ -16,8 +17,6 @@ void initializeTouchScreen() {
     );
     ts.begin(tsSPI);
     ts.setRotation(SCREEN_ROTATION);
-
-    setScreenColor(COLOR_OFF);
 }
 
 void setScreenColor(ScreenColor color) {

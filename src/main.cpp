@@ -8,9 +8,9 @@
 #include "config.h"
 #include "globals.h"
 #include "modules/servo.h"
-#include "modules/touchScreen.h"
 #include "state_mashine/state.h"
 #include "state_mashine/handlers/initializing.h"
+#include "state_mashine/handlers/screenHandler.h"
 #include "state_mashine/handlers/statusLED.h"
 
 Adafruit_NeoPixel statusLED(
@@ -40,14 +40,11 @@ void setup() {
 
     createServoTask();
 
+    createUpdateScreenTask();
+    createCheckUserInputTask();
+
     sendStateEvent(EVENT_START);
-
-    // TouchScreen Test
-    initializeTouchScreen();
-
-    drawButton(FLUID_0);
-    drawButton(FLUID_1);
-    drawButton(FLUID_2);
+    sendScreenEvent(SCREEN_EVENT_START);
 }
 
 void loop() {
@@ -60,24 +57,4 @@ void loop() {
     //    }
     //}
     //vTaskDelay(pdMS_TO_TICKS(10));  // yield time even while moving
-
-    //const TS_Point point = ts.getPoint();
-    //Serial.print("Raw X: "); Serial.print(point.x);
-    //Serial.print(" Y: "); Serial.println(point.y);
-
-    for (int id = FLUID_0; id <= FLUID_2; id++) {
-        if (isButtonPressed(static_cast<ButtonID>(id))) {
-            switch (id) {
-                case FLUID_0:
-                    Serial.println("Button FLUID_0 pressed");
-                    break;
-                case FLUID_1:
-                    Serial.println("Button FLUID_1 pressed");
-                    break;
-                case FLUID_2:
-                    Serial.println("Button FLUID_2 pressed");
-                    break;
-            }
-        }
-    }
 }
