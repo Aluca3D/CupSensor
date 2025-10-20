@@ -27,8 +27,9 @@ extern volatile SystemState lastState;
 
 extern QueueHandle_t stateEventQueue;
 
+void sendStateEvent(SystemEvent event);
+
 void createStateMachineTask();
 
-void sendStateEvent(SystemEvent event);
 
 #endif //PROJECT_CUPSENSE_STATE_H

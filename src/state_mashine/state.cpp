@@ -10,7 +10,6 @@ QueueHandle_t stateEventQueue = nullptr;
 
 void sendStateEvent(SystemEvent event) {
     if (stateEventQueue) {
-        // Send event to the queue (non-blocking)
         xQueueSend(stateEventQueue, &event, 0);
     }
 }
