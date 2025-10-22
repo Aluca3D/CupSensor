@@ -28,7 +28,10 @@ XPT2046_Touchscreen ts(TOUCH_CS_PIN, TOUCH_IRQ_PIN);
 
 /*
  * TODO: overwork/check stateMachine and handler (LED)
- * TODO: overwork/Add Debugger (Serial print into Task/s)
+ * TODO: add StopAll Function
+ * (For Error/Abort to stop scanning, Servo and Pumps)
+ * TODO: overwork/add US Sensor Functions
+ * (Update Initializer for Both sensors, add calculation functions for Fluid Level/ Cup Height set Initial Height, etc)
  */
 
 void setup() {

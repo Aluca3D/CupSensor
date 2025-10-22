@@ -16,7 +16,7 @@ void sendScreenEvent(ScreenEvent event) {
     }
 }
 
-// TODO: Replace Serial. with "update state and pump"
+// TODO: Replace Serial. with "update screen state and start pump"
 [[noreturn]] void checkUserInputTask(void *parameters) {
     SystemState lastSeenState = STATE_OFF;
 
@@ -58,7 +58,7 @@ void sendScreenEvent(ScreenEvent event) {
     }
 }
 
-// TODO: Add all screen States and new Screen Print Functions (Id needed or time)
+// TODO: Add all screen States and new Screen Print Functions
 [[noreturn]] void updateScreenTask(void *parameters) {
     initializeTouchScreen();
 
