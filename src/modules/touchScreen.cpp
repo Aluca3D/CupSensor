@@ -35,24 +35,20 @@ void resetButton(ButtonID id) {
     tft.fillRect(button.x, button.y, button.w, button.h, COLOR_OFF);
 }
 
+bool isScreenPressed(TS_Point& point) {
+    return (point.z < TOUCH_PRESSURE_PRESSED);
+}
+
 // TODO: Make more precise (if possible)
-bool isButtonPressed(ButtonID id) {
+bool isButtonPressed(ButtonID id, TS_Point& point) {
     const auto &button = BUTTONS[id];
 
-    if (!ts.touched()) return false;
+    int x = map(point.x, TOUCH_LEFT, TOUCH_RIGHT, 0, SCREEN_WIDTH - 1);
+    int y = map(point.y, TOUCH_TOP, TOUCH_BOTTOM, 0, SCREEN_HEIGHT - 1);
 
-    const TS_Point point = ts.getPoint();
-    if (point.z < TOUCH_PRESSURE_PRESSED) {
-        int x = map(point.x, TOUCH_LEFT, TOUCH_RIGHT, 0, SCREEN_WIDTH - 1);
-        int y = map(point.y, TOUCH_TOP, TOUCH_BOTTOM, 0, SCREEN_HEIGHT - 1);
+    x = constrain(x, 0, SCREEN_WIDTH - 1);
+    y = constrain(y, 0, SCREEN_HEIGHT - 1);
 
-        x = constrain(x, 0, SCREEN_WIDTH - 1);
-        y = constrain(y, 0, SCREEN_HEIGHT - 1);
-
-        if (x >= button.x && x <= button.x + button.w &&
-            y >= button.y && y <= button.y + button.h) {
-            return true;
-        }
-    }
-    return false;
+    return (x >= button.x && x <= button.x + button.w &&
+            y >= button.y && y <= button.y + button.h);
 }

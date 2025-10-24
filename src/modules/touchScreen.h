@@ -56,6 +56,8 @@ void drawButton(ButtonID id);
 
 void resetButton(ButtonID id);
 
-bool isButtonPressed(ButtonID id);
+bool isScreenPressed(TS_Point& point);
+
+bool isButtonPressed(ButtonID id, TS_Point& point);
 
 #endif //CUPSENSOR_TOUCHSCREEN_H

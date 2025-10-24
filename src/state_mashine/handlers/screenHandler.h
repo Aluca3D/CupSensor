@@ -26,8 +26,6 @@ extern volatile ScreenState lastScreen;
 
 void sendScreenEvent(ScreenEvent event);
 
-void createCheckUserInputTask();
-
 void createUpdateScreenTask();
 
 #endif //CUPSENSOR_SCREENHANDLER_H

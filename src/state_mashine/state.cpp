@@ -97,7 +97,7 @@ void createStateMachineTask() {
     if (!stateEventQueue) {
         Serial.println("Failed to create state queue!");
         while (true) {
-        } // stop
+        }
     }
 
     xTaskCreatePinnedToCore(

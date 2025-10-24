@@ -12,6 +12,7 @@
 #include "state_mashine/handlers/initializing.h"
 #include "state_mashine/handlers/screenHandler.h"
 #include "state_mashine/handlers/statusLED.h"
+#include "state_mashine/handlers/touchHandler.h"
 
 Adafruit_NeoPixel statusLED(
     ONBOARD_RGB_PIN, ONBOARD_RGB_PIN, NEO_GRBW + NEO_KHZ800

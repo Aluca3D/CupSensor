@@ -4,7 +4,6 @@
 
 #include "globals.h"
 #include "modules/touchScreen.h"
-#include "state_mashine/state.h"
 
 volatile ScreenState currentScreen = SCREEN_OFF;
 volatile ScreenState lastScreen = SCREEN_OFF;
@@ -16,49 +15,7 @@ void sendScreenEvent(ScreenEvent event) {
     }
 }
 
-// TODO: Replace Serial. with "update screen state and start pump"
-[[noreturn]] void checkUserInputTask(void *parameters) {
-    SystemState lastSeenState = STATE_OFF;
-
-    for (;;) {
-        const SystemState current = currentState;
-
-        if (current != lastSeenState) {
-            lastSeenState = current;
-
-            switch (current) {
-                case STATE_IDLE:
-                    if (isButtonPressed(FLUID_0)) {
-                        Serial.println("Button FLUID_0 pressed");
-                    } else if (isButtonPressed(FLUID_1)) {
-                        Serial.println("Button FLUID_1 pressed");
-                    } else if (isButtonPressed(FLUID_2)) {
-                        Serial.println("Button FLUID_2 pressed");
-                    }
-                    break;
-                case STATE_SCANNING_HEIGHT:
-                case STATE_SCANNING_FLUID:
-                case STATE_RESET_POSITION:
-                case STATE_FILLING:
-                    if (isButtonPressed(ABORT)) {
-                        Serial.println("Button ABORT pressed");
-                    }
-                    break;
-                case STATE_ERROR:
-                case STATE_FINISHED:
-                    if (isButtonPressed(CONTINUE)) {
-                        Serial.println("Button CONTINUE pressed");
-                    }
-                    break;
-                default:
-                    break;
-            }
-        }
-        vTaskDelay(pdMS_TO_TICKS(50));
-    }
-}
-
-// TODO: Add all screen States and new Screen Print Functions
+// TODO: Add all screen States and new Screen Print Functions (to Modules)
 [[noreturn]] void updateScreenTask(void *parameters) {
     initializeTouchScreen();
 
@@ -70,7 +27,6 @@ void sendScreenEvent(ScreenEvent event) {
             switch (currentScreen) {
                 case SCREEN_OFF:
                     if (event == SCREEN_EVENT_START) {
-                        setScreenColor(COLOR_YELLOW);
                         drawButton(FLUID_0);
                         drawButton(FLUID_1);
                         drawButton(FLUID_2);
@@ -94,19 +50,14 @@ void sendScreenEvent(ScreenEvent event) {
     }
 }
 
-void createCheckUserInputTask() {
-    xTaskCreatePinnedToCore(
-        checkUserInputTask,
-        "checkUserInputTask",
-        4096,
-        nullptr,
-        PRIORITY_HIGH,
-        nullptr,
-        CORE_ID_1
-    );
-}
-
 void createUpdateScreenTask() {
+    screenEventQueue = xQueueCreate(10, sizeof(ScreenEvent));
+    if (!screenEventQueue) {
+        Serial.println("Failed to create screen queue!");
+        while (true) {
+        }
+    }
+
     xTaskCreatePinnedToCore(
         updateScreenTask,
         "updateScreenTask",
