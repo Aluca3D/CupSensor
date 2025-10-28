@@ -4,7 +4,7 @@
 
 #include "modules/led.h"
 #include "globals.h"
-#include "state_mashine/state.h"
+#include "state_machine/state.h"
 
 
 [[noreturn]] void LEDTask(void *parameters) {

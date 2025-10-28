@@ -5,7 +5,7 @@
 #include "config.h"
 #include "globals.h"
 #include "modules/ultra_sonic_sensor.h"
-#include "state_mashine/state.h"
+#include "state_machine/state.h"
 
 [[noreturn]] void initializingTask(void *parameters) {
     Serial.printf("initializingTask started on core %d\n", xPortGetCoreID());
