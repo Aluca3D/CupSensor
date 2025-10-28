@@ -4,7 +4,7 @@
 
 #include "config.h"
 #include "globals.h"
-#include "state_mashine/state.h"
+#include "state_machine/state.h"
 #include "modules/touchScreen.h"
 
 // TODO: Replace Serial. with "update screen state and start pump"
