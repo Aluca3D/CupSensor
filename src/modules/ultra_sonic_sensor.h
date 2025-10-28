@@ -1,14 +1,20 @@
 ﻿#ifndef PROJECT_CUPSENSE_US_SENSOR_H
 #define PROJECT_CUPSENSE_US_SENSOR_H
 
-void initializeUltraSonicSensor(int TRIGGER_PIN, int ECHO_PIN);
+#include "config.h"
 
-long getDistance(int TRIGGER_PIN, int ECHO_PIN);
+enum UltraSonicSensors {
+    WaterEcho = US_WATER_ECHO_PIN,
+    WaterTrigger = US_WATER_TRIGGER_PIN,
+    HeightEcho = US_HEIGHT_ECHO_PIN,
+    HeightTrigger = US_HEIGHT_TRIGGER_PIN,
+};
 
-// TODO: Overwork
-void initUSSensorHeight();
+void initializeUltraSonicSensors();
 
-void initUSSensorFluid();
+long getDistance(UltraSonicSensors TRIGGER, UltraSonicSensors ECHO);
+
+long getAverageDistance(UltraSonicSensors TRIGGER, UltraSonicSensors ECHO);
 
 void getCupHeight(); // Maybe better in Handler
 

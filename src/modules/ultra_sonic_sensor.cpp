@@ -2,25 +2,47 @@
 
 #include "ultra_sonic_sensor.h"
 
-void initializeUltraSonicSensor(int TRIGGER_PIN, int ECHO_PIN) {
-    pinMode(TRIGGER_PIN, OUTPUT);
-    pinMode(ECHO_PIN, INPUT);
+void initializeUltraSonicSensors() {
+    pinMode(WaterEcho, INPUT);
+    pinMode(WaterTrigger, OUTPUT);
+    pinMode(HeightEcho, INPUT);
+    pinMode(HeightTrigger, OUTPUT);
 }
 
-void activateTrigger(int TRIGGER_PIN) {
-    digitalWrite(TRIGGER_PIN, LOW);
+void activateTrigger(UltraSonicSensors TRIGGER) {
+    digitalWrite(TRIGGER, LOW);
     delayMicroseconds(2);
-    digitalWrite(TRIGGER_PIN, HIGH);
+    digitalWrite(TRIGGER, HIGH);
     delayMicroseconds(10);
-    digitalWrite(TRIGGER_PIN, LOW);
+    digitalWrite(TRIGGER, LOW);
 }
 
-long getEcho(int ECHO_PIN) {
-    return pulseIn(ECHO_PIN, HIGH);
+long getEcho(UltraSonicSensors ECHO) {
+    return pulseIn(ECHO, HIGH, PULSEIN_TIMEOUT_US);
 }
 
-long getDistance(int TRIGGER_PIN, int ECHO_PIN) {
-    activateTrigger(TRIGGER_PIN);
-    long distance = getEcho(ECHO_PIN);
-    return distance;
+long getDistance(UltraSonicSensors TRIGGER, UltraSonicSensors ECHO) {
+    activateTrigger(TRIGGER);
+    const long echoTime = getEcho(ECHO);
+    return echoTime;
+}
+
+long getAverageDistance(UltraSonicSensors TRIGGER, UltraSonicSensors ECHO) {
+    long total = 0;
+    int validReadings = 0;
+
+    for (int i = 0; i < NUMBER_OF_READINGS; i++) {
+        const long echoTime = getDistance(TRIGGER, ECHO);
+
+        if (echoTime > 0) {
+            total += echoTime;
+            validReadings++;
+        }
+        delay(10);
+    }
+
+    if (validReadings > 0) {
+        return total / validReadings;
+    }
+    return 0;
 }

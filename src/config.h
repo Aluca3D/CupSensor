@@ -7,6 +7,9 @@
 #define US_HEIGHT_ECHO_PIN    40
 #define US_HEIGHT_TRIGGER_PIN 39
 
+#define NUMBER_OF_READINGS 4
+#define PULSEIN_TIMEOUT_US 25000
+
 // Builtin RGB LED
 #define ONBOARD_RGB_PIN 38
 
