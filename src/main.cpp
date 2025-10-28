@@ -8,11 +8,11 @@
 #include "config.h"
 #include "globals.h"
 #include "modules/servo.h"
-#include "state_mashine/state.h"
-#include "state_mashine/handlers/initializing.h"
-#include "state_mashine/handlers/screenHandler.h"
-#include "state_mashine/handlers/statusLED.h"
-#include "state_mashine/handlers/touchHandler.h"
+#include "state_machine/state.h"
+#include "state_machine/handlers/initializing.h"
+#include "state_machine/handlers/screenHandler.h"
+#include "state_machine/handlers/statusLED.h"
+#include "state_machine/handlers/touchHandler.h"
 
 Adafruit_NeoPixel statusLED(
     ONBOARD_RGB_PIN, ONBOARD_RGB_PIN, NEO_GRBW + NEO_KHZ800
