@@ -17,7 +17,7 @@ void stopPump(PumpRelays pump) {
 }
 
 void stopAllPumps() {
-    const PumpRelays pumpList[] = {PUMP_1, PUMP_2, PUMP_3};
+    constexpr PumpRelays pumpList[] = {PUMP_1, PUMP_2, PUMP_3};
 
     for (PumpRelays pump: pumpList) {
         stopPump(pump);
