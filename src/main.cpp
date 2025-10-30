@@ -7,12 +7,14 @@
 
 #include "config.h"
 #include "globals.h"
+#include "modules/pump_relay.h"
 #include "modules/servo.h"
+#include "modules/ultra_sonic_sensor.h"
 #include "state_machine/state.h"
 #include "state_machine/handlers/initializing.h"
-#include "state_machine/handlers/screenHandler.h"
-#include "state_machine/handlers/statusLED.h"
-#include "state_machine/handlers/touchHandler.h"
+#include "state_machine/handlers/screen_handler.h"
+#include "state_machine/handlers/status_LED.h"
+#include "state_machine/handlers/touch_handler.h"
 
 Adafruit_NeoPixel statusLED(
     ONBOARD_RGB_PIN, ONBOARD_RGB_PIN, NEO_GRBW + NEO_KHZ800
@@ -28,13 +30,31 @@ SPIClass tsSPI(VSPI);
 XPT2046_Touchscreen ts(TOUCH_CS_PIN, TOUCH_IRQ_PIN);
 
 /*
- * TODO: overwork/check stateMachine and handler (LED)
- * TODO: add StopAll Function
+ * TODO: add StopAll Function (if needed)
  * (For Error/Abort to stop scanning, Servo and Pumps)
+ * TODO: add Print Task/Function
+ * (Replace all Serial.Print for smother workflow)
  */
+
+[[noreturn]] void test(void *pvParameters) {
+    for (;;) {
+        if (!getIsMoving() && currentState != STATE_INITIALIZING) {
+            vTaskDelay(pdMS_TO_TICKS(1000)); // wait before reversing
+            if (getDistanceMoved() <= 0.05) {
+                servoMoveToo(10.0f);
+            } else {
+                servoMoveToo(0.0f);
+            }
+        }
+        vTaskDelay(pdMS_TO_TICKS(100)); // yield time even while moving
+    }
+}
 
 void setup() {
     Serial.begin(9600);
+
+    initializePumpRelays();
+    initializeUltraSonicSensors();
 
     createLEDTask();
     createStateMachineTask();
@@ -45,18 +65,19 @@ void setup() {
     createUpdateScreenTask();
     createCheckUserInputTask();
 
+    xTaskCreatePinnedToCore(
+        test,
+        "testTask",
+        4096,
+        nullptr,
+        PRIORITY_NORMAL,
+        nullptr,
+        CORE_ID_0
+    );
+
     sendStateEvent(EVENT_START);
     sendScreenEvent(SCREEN_EVENT_START);
 }
 
 void loop() {
-    //if (!getIsMoving()) {
-    //    vTaskDelay(pdMS_TO_TICKS(1000));  // wait before reversing
-    //    if (getDistanceMoved() <= 0.05) {
-    //        servoMoveToo(10.0f);
-    //    } else {
-    //        servoMoveToo(0.0f);
-    //    }
-    //}
-    //vTaskDelay(pdMS_TO_TICKS(10));  // yield time even while moving
 }

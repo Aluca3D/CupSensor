@@ -12,9 +12,9 @@ enum UltraSonicSensors {
 
 void initializeUltraSonicSensors();
 
-long getDistance(UltraSonicSensors TRIGGER, UltraSonicSensors ECHO);
+unsigned long getDistance(UltraSonicSensors TRIGGER, UltraSonicSensors ECHO);
 
-long getAverageDistance(UltraSonicSensors TRIGGER, UltraSonicSensors ECHO);
+unsigned long getAverageDistance(UltraSonicSensors TRIGGER, UltraSonicSensors ECHO);
 
 void getCupHeight(); // Maybe better in Handler
 

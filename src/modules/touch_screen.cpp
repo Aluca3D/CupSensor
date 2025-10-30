@@ -1,4 +1,4 @@
-#include "touchScreen.h"
+#include "touch_screen.h"
 
 #include "config.h"
 #include "XPT2046_Touchscreen.h"

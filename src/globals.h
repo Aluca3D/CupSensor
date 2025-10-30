@@ -13,4 +13,6 @@ enum CoreID {
     CORE_ID_1 = 1,
 };
 
+extern unsigned long setupHeight;
+
 #endif //PROJECT_CUPSENSE_GLOBAL_VARIABLES_H

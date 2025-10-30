@@ -3,13 +3,15 @@
 #include "initializing.h"
 
 #include "config.h"
+#include "ESP32Servo.h"
 #include "globals.h"
+#include "modules/servo.h"
 #include "modules/ultra_sonic_sensor.h"
 #include "state_machine/state.h"
 
-[[noreturn]] void initializingTask(void *parameters) {
-    Serial.printf("initializingTask started on core %d\n", xPortGetCoreID());
+unsigned long setupHeight = 0;
 
+[[noreturn]] void initializingTask(void *parameters) {
     SystemState lastSeenState = STATE_OFF;
 
     for (;;) {
@@ -18,11 +20,14 @@
             lastSeenState = current;
 
             if (current == STATE_INITIALIZING) {
-                /*
-                 * Get Initial Height
-                 * "Reset" Servo Height
-                 * Set Screen to Idle?
-                 */
+                // Reset Servo Height TODO: Check if needed
+                servoAttach();
+                servo.writeMicroseconds(SERVO_SPEED_BACKWARDS);
+                delay(100);
+                servo.writeMicroseconds(SERVO_SPEED_STOP);
+                servoDetach();
+                // Set Init Variables
+                setupHeight = getAverageDistance(WaterTrigger, WaterEcho);
                 sendStateEvent(EVENT_DONE);
             }
         }

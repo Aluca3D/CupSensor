@@ -1,9 +1,9 @@
 #include <Arduino.h>
 
-#include "screenHandler.h"
+#include "screen_handler.h"
 
 #include "globals.h"
-#include "modules/touchScreen.h"
+#include "modules/touch_screen.h"
 
 volatile ScreenState currentScreen = SCREEN_OFF;
 volatile ScreenState lastScreen = SCREEN_OFF;

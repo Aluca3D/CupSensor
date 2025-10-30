@@ -6,6 +6,7 @@
 #include "globals.h"
 
 Servo servo;
+
 portMUX_TYPE servoDataMux = portMUX_INITIALIZER_UNLOCKED;
 
 static bool servoMoving = false;
@@ -23,12 +24,12 @@ float linearSpeed() {
 
 void servoAttach() {
     servo.attach(SERVO_PIN);
-    delay(50);
+    delay(SERVO_MOVE_INTERVALS);
 }
 
 void servoDetach() {
     servo.writeMicroseconds(SERVO_SPEED_STOP);
-    delay(50);
+    delay(SERVO_MOVE_INTERVALS);
     servo.detach();
 }
 
@@ -51,7 +52,10 @@ void servoMoveToo(float positionCM) {
             servoMoving = true;
             lastServoUpdate = millis();
             needToStart = true;
-            pulseToSend = servoDirectionForward ? SERVO_SPEED_FORWARDS : SERVO_SPEED_BACKWARDS;
+            pulseToSend =
+                servoDirectionForward
+            ? SERVO_SPEED_FORWARDS
+            : SERVO_SPEED_BACKWARDS;
         } else {
             servoMoving = false;
         }

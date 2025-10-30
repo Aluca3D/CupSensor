@@ -1,11 +1,11 @@
 ﻿#include <Arduino.h>
 
-#include "touchHandler.h"
+#include "touch_handler.h"
 
 #include "config.h"
 #include "globals.h"
 #include "state_machine/state.h"
-#include "modules/touchScreen.h"
+#include "modules/touch_screen.h"
 
 // TODO: Replace Serial. with "update screen state and start pump"
 void handleButtonAction(ButtonID button) {
