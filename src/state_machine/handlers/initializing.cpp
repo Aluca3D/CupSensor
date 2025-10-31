@@ -3,6 +3,7 @@
 #include "initializing.h"
 
 #include "config.h"
+#include "DebugHandler.h"
 #include "ESP32Servo.h"
 #include "globals.h"
 #include "modules/servo.h"
@@ -12,6 +13,7 @@
 unsigned long setupHeight = 0;
 
 [[noreturn]] void initializingTask(void *parameters) {
+    debugPrint(LOG_INFO, "initializingTask started on core %d", xPortGetCoreID());
     SystemState lastSeenState = STATE_OFF;
 
     for (;;) {

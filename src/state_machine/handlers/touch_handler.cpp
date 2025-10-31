@@ -3,6 +3,7 @@
 #include "touch_handler.h"
 
 #include "config.h"
+#include "DebugHandler.h"
 #include "globals.h"
 #include "state_machine/state.h"
 #include "modules/touch_screen.h"
@@ -13,13 +14,13 @@ void handleButtonAction(ButtonID button) {
         case STATE_IDLE:
             switch (button) {
                 case FLUID_0:
-                    Serial.println("Starting fill with fluid 0");
+                    debugPrint(LOG_DEBUG, "Starting fill with FLUID_0");
                     break;
                 case FLUID_1:
-                    Serial.println("Starting fill with fluid 1");
+                    debugPrint(LOG_DEBUG, "Starting fill with FLUID_1");
                     break;
                 case FLUID_2:
-                    Serial.println("Starting fill with fluid 2");
+                    debugPrint(LOG_DEBUG, "Starting fill with FLUID_2");
                     break;
                 default:
                     break;
@@ -31,14 +32,14 @@ void handleButtonAction(ButtonID button) {
         case STATE_RESET_POSITION:
         case STATE_SCANNING_HEIGHT:
             if (button == ABORT) {
-                Serial.println("Aborting operation!");
+                debugPrint(LOG_DEBUG, "Starting fill with ABORT");
             }
             break;
 
         case STATE_ERROR:
         case STATE_FINISHED:
             if (button == CONTINUE) {
-                Serial.println("Continuing after error/finish");
+                debugPrint(LOG_DEBUG, "Starting fill with CONTINUE");
             }
             break;
 
@@ -48,6 +49,8 @@ void handleButtonAction(ButtonID button) {
 }
 
 [[noreturn]] void checkUserInputTask(void *parameters) {
+    debugPrint(LOG_INFO, "checkUserInputTask started on core %d", xPortGetCoreID());
+
     ButtonID lastButton = BUTTON_COUNT;
     ButtonID stableButton = BUTTON_COUNT;
     TickType_t lastChangeTime = 0;

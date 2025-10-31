@@ -1,6 +1,11 @@
 #ifndef PROJECT_CUPSENSE_CONFIG_H
 #define PROJECT_CUPSENSE_CONFIG_H
 
+// Debug
+#define DEBUG_ENABLED 1
+#define DEBUG_MESSAGE_LENGTH 256
+#define DEBUG_SERIAL 9600
+
 // Ultrasonic Sensor's
 #define US_WATER_ECHO_PIN     42
 #define US_WATER_TRIGGER_PIN  41

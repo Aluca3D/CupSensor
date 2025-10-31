@@ -2,13 +2,14 @@
 
 #include "status_LED.h"
 
+#include "DebugHandler.h"
 #include "modules/led.h"
 #include "globals.h"
 #include "state_machine/state.h"
 
 
 [[noreturn]] void LEDTask(void *parameters) {
-    Serial.printf("LEDTask started on core %d\n", xPortGetCoreID());
+    debugPrint(LOG_INFO, "LEDTask started on core %d", xPortGetCoreID());
 
     initializeStatusLED();
 

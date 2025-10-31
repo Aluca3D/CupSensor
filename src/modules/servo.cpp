@@ -4,6 +4,7 @@
 #include "servo.h"
 #include "config.h"
 #include "globals.h"
+#include "state_machine/handlers/DebugHandler.h"
 
 Servo servo;
 
@@ -70,6 +71,7 @@ void servoMoveToo(float positionCM) {
 }
 
 [[noreturn]] static void servoTask(void *pvParameters) {
+    debugPrint(LOG_INFO, "servoTask started on core %d", xPortGetCoreID());
     (void) pvParameters;
 
     constexpr TickType_t delayTicksWhenIdle = pdMS_TO_TICKS(50);

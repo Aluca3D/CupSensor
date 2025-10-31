@@ -3,6 +3,7 @@
 #include "state.h"
 
 #include "globals.h"
+#include "handlers/DebugHandler.h"
 
 volatile SystemState currentState = STATE_OFF;
 volatile SystemState lastState = STATE_OFF;
@@ -15,7 +16,7 @@ void sendStateEvent(SystemEvent event) {
 }
 
 [[noreturn]] void stateMachineTask(void *pvParameters) {
-    Serial.printf("stateMachineTask started on core %d\n", xPortGetCoreID());
+    debugPrint(LOG_INFO, "stateMachineTask started on core %d", xPortGetCoreID());
     SystemEvent event = EVENT_NONE;
 
     for (;;) {
@@ -86,7 +87,8 @@ void sendStateEvent(SystemEvent event) {
             }
 
             // Optional debug log
-            Serial.printf("Transition: %d → %d (event=%d)\n", lastState, currentState, event);
+            debugPrint(LOG_DEBUG, "Transition: %d → %d (event=%d)", lastState, currentState, event);
+
         }
         vTaskDelay(pdMS_TO_TICKS(10));
     }
@@ -95,7 +97,7 @@ void sendStateEvent(SystemEvent event) {
 void createStateMachineTask() {
     stateEventQueue = xQueueCreate(10, sizeof(SystemEvent));
     if (!stateEventQueue) {
-        Serial.println("Failed to create state queue!");
+        debugPrint(LOG_WARNING, "Failed to create state queue!");
         while (true) {
         }
     }

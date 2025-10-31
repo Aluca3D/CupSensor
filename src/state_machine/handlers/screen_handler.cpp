@@ -2,6 +2,7 @@
 
 #include "screen_handler.h"
 
+#include "DebugHandler.h"
 #include "globals.h"
 #include "modules/touch_screen.h"
 
@@ -17,6 +18,7 @@ void sendScreenEvent(ScreenEvent event) {
 
 // TODO: Add all screen States and new Screen Print Functions (to Modules)
 [[noreturn]] void updateScreenTask(void *parameters) {
+    debugPrint(LOG_INFO, "updateScreenTask started on core %d", xPortGetCoreID());
     initializeTouchScreen();
 
     ScreenEvent event = SCREEN_EVENT_NONE;
@@ -53,7 +55,7 @@ void sendScreenEvent(ScreenEvent event) {
 void createUpdateScreenTask() {
     screenEventQueue = xQueueCreate(10, sizeof(ScreenEvent));
     if (!screenEventQueue) {
-        Serial.println("Failed to create screen queue!");
+        debugPrint(LOG_WARNING, "Failed to create screen queue!");
         while (true) {
         }
     }
