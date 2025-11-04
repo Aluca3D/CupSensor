@@ -42,7 +42,7 @@ bool isScreenPressed(TS_Point &point) {
     return (point.z < TOUCH_PRESSURE_PRESSED);
 }
 
-ButtonID getPressedButton(TS_Point &point) {
+ButtonID getTouchScreenButtonPressed(TS_Point &point) {
     int x = map(point.x, TOUCH_LEFT, TOUCH_RIGHT, 0, SCREEN_WIDTH - 1);
     int y = map(point.y, TOUCH_TOP, TOUCH_BOTTOM, 0, SCREEN_HEIGHT - 1);
 

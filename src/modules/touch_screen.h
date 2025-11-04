@@ -14,18 +14,18 @@ constexpr uint16_t color565(uint8_t r, uint8_t g, uint8_t b) {
 }
 
 enum ScreenColor {
-    COLOR_OFF = color565(0,0,0),
-    COLOR_RED = color565(255,0,0),
-    COLOR_GREEN = color565(0,255,0),
-    COLOR_BLUE = color565(0,0,255),
-    COLOR_YELLOW = color565(255,255,0),
-    COLOR_MAGENTA = color565(255,0,255),
-    COLOR_CYAN = color565(0,255,255),
-    COLOR_WHITE = color565(255,255,255),
+    COLOR_OFF = color565(0, 0, 0),
+    COLOR_RED = color565(255, 0, 0),
+    COLOR_GREEN = color565(0, 255, 0),
+    COLOR_BLUE = color565(0, 0, 255),
+    COLOR_YELLOW = color565(255, 255, 0),
+    COLOR_MAGENTA = color565(255, 0, 255),
+    COLOR_CYAN = color565(0, 255, 255),
+    COLOR_WHITE = color565(255, 255, 255),
 };
 
 struct ButtonRect {
-    const char* label;
+    const char *label;
     int x, y, w, h;
     ScreenColor color;
 };
@@ -40,12 +40,12 @@ enum ButtonID {
 };
 
 constexpr ButtonRect BUTTONS[BUTTON_COUNT] = {
-    {"Fluid 0", 15,  20,  90, 200, COLOR_BLUE},
-    {"Fluid 1", 115,  20, 90, 200, COLOR_YELLOW},
-    {"Fluid 2", 215,  20, 90, 200, COLOR_CYAN},
+    {"Fluid 0", 15, 20, 90, 200, COLOR_BLUE},
+    {"Fluid 1", 115, 20, 90, 200, COLOR_YELLOW},
+    {"Fluid 2", 215, 20, 90, 200, COLOR_CYAN},
 
-    {"Abort",   80,  80,  140, 120, COLOR_RED},
-    {"Continue",   80,  80,  140, 120, COLOR_GREEN}
+    {"Abort", 80, 80, 140, 120, COLOR_RED},
+    {"Continue", 80, 80, 140, 120, COLOR_GREEN}
 };
 
 void initializeTouchScreen();
@@ -56,8 +56,8 @@ void drawButton(ButtonID id);
 
 void resetButton(ButtonID id);
 
-bool isScreenPressed(TS_Point& point);
+bool isScreenPressed(TS_Point &point);
 
-ButtonID getPressedButton(TS_Point& point);
+ButtonID getTouchScreenButtonPressed(TS_Point &point);;
 
 #endif //CUPSENSOR_TOUCHSCREEN_H

@@ -57,7 +57,7 @@ void handleButtonAction(ButtonID button) {
 
     for (;;) {
         TS_Point point = ts.getPoint();
-        const ButtonID currentButton = getPressedButton(point);
+        const ButtonID currentButton = getTouchScreenButtonPressed(point);
 
         if (currentButton != lastButton) {
             lastChangeTime = xTaskGetTickCount();
