@@ -5,22 +5,25 @@
 #include "config.h"
 #include "debug_handler.h"
 #include "globals.h"
+#include "scann_handler.h"
 #include "state_machine/state.h"
 #include "modules/touch_screen.h"
 
-// TODO: Replace Serial. with "update screen state and start pump"
 void handleButtonAction(ButtonID button) {
     switch (currentState) {
         case STATE_IDLE:
             switch (button) {
                 case FLUID_0:
                     debugPrint(LOG_DEBUG, "Starting fill with FLUID_0");
+                    sendPressedButton(FLUID_0);
                     break;
                 case FLUID_1:
                     debugPrint(LOG_DEBUG, "Starting fill with FLUID_1");
+                    sendPressedButton(FLUID_1);
                     break;
                 case FLUID_2:
                     debugPrint(LOG_DEBUG, "Starting fill with FLUID_2");
+                    sendPressedButton(FLUID_2);
                     break;
                 default:
                     break;
@@ -33,6 +36,7 @@ void handleButtonAction(ButtonID button) {
         case STATE_SCANNING_HEIGHT:
             if (button == ABORT) {
                 debugPrint(LOG_DEBUG, "Starting fill with ABORT");
+                sendPressedButton(ABORT);
             }
             break;
 
@@ -40,6 +44,7 @@ void handleButtonAction(ButtonID button) {
         case STATE_FINISHED:
             if (button == CONTINUE) {
                 debugPrint(LOG_DEBUG, "Starting fill with CONTINUE");
+                sendPressedButton(CONTINUE);
             }
             break;
 

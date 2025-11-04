@@ -3,7 +3,7 @@
 #include "state.h"
 
 #include "globals.h"
-#include "handlers/DebugHandler.h"
+#include "handlers/debug_handler.h"
 
 volatile SystemState currentState = STATE_OFF;
 volatile SystemState lastState = STATE_OFF;

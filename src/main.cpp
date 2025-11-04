@@ -13,6 +13,7 @@
 #include "state_machine/state.h"
 #include "state_machine/handlers/debug_handler.h"
 #include "state_machine/handlers/initializing.h"
+#include "state_machine/handlers/scann_handler.h"
 #include "state_machine/handlers/screen_handler.h"
 #include "state_machine/handlers/status_LED.h"
 #include "state_machine/handlers/touch_handler.h"
@@ -33,8 +34,6 @@ XPT2046_Touchscreen ts(TOUCH_CS_PIN, TOUCH_IRQ_PIN);
 /*
  * TODO: add StopAll Function (if needed)
  * (For Error/Abort to stop scanning, Servo and Pumps)
- * TODO: add Print Task/Function
- * (Replace all Serial.Print for smother workflow)
  */
 
 [[noreturn]] void test(void *pvParameters) {
@@ -58,13 +57,14 @@ void setup() {
     initializeUltraSonicSensors();
 
     createLEDTask();
-    createStateMachineTask();
-    createInitTask();
-
     createServoTask();
 
     createUpdateScreenTask();
     createCheckUserInputTask();
+    createStateMachineTask();
+
+    createInitTask();
+    createScannTask();
 
     xTaskCreatePinnedToCore(
         test,
