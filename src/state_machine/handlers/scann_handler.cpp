@@ -13,7 +13,7 @@ void sendPressedButton(ButtonID buttonPressed) {
 }
 
 ButtonID receivePressedButton() {
-    ButtonID buttonPressed;
+    ButtonID buttonPressed = BUTTON_COUNT;
     if (xQueueReceive(buttonQueue, &buttonPressed, portMAX_DELAY)) {
         debugPrint(LOG_DEBUG, "Received button pressed %d\n", buttonPressed);
         return buttonPressed;
