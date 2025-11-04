@@ -1,4 +1,4 @@
-﻿#include "DebugHandler.h"
+﻿#include "debug_handler.h"
 
 #include "globals.h"
 

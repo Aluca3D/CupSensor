@@ -4,7 +4,7 @@
 #include "servo.h"
 #include "config.h"
 #include "globals.h"
-#include "state_machine/handlers/DebugHandler.h"
+#include "state_machine/handlers/debug_handler.h"
 
 Servo servo;
 

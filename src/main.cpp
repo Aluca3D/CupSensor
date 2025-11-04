@@ -11,7 +11,7 @@
 #include "modules/servo.h"
 #include "modules/ultra_sonic_sensor.h"
 #include "state_machine/state.h"
-#include "state_machine/handlers/DebugHandler.h"
+#include "state_machine/handlers/debug_handler.h"
 #include "state_machine/handlers/initializing.h"
 #include "state_machine/handlers/screen_handler.h"
 #include "state_machine/handlers/status_LED.h"

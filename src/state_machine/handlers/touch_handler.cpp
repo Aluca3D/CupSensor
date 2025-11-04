@@ -3,7 +3,7 @@
 #include "touch_handler.h"
 
 #include "config.h"
-#include "DebugHandler.h"
+#include "debug_handler.h"
 #include "globals.h"
 #include "state_machine/state.h"
 #include "modules/touch_screen.h"

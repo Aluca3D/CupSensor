@@ -2,7 +2,7 @@
 
 #include "status_LED.h"
 
-#include "DebugHandler.h"
+#include "debug_handler.h"
 #include "modules/led.h"
 #include "globals.h"
 #include "state_machine/state.h"
