@@ -57,8 +57,8 @@ void handleButtonAction(ButtonID button) {
     debugPrint(LOG_INFO, "checkUserInputTask started on core %d", xPortGetCoreID());
 
     ButtonID lastButton = BUTTON_COUNT;
-    ButtonID stableButton = BUTTON_COUNT;
     TickType_t lastChangeTime = 0;
+    bool buttonPressed = false;
 
     for (;;) {
         TS_Point point = ts.getPoint();
@@ -70,12 +70,13 @@ void handleButtonAction(ButtonID button) {
         }
 
         if (xTaskGetTickCount() - lastChangeTime > pdMS_TO_TICKS(TOUCH_DEBOUNCE_DELAY_MS)) {
-            if (stableButton != currentButton) {
-                stableButton = currentButton;
-
-                if (stableButton != BUTTON_COUNT) {
-                    handleButtonAction(stableButton);
+            if (currentButton != BUTTON_COUNT) {
+                if (!buttonPressed) {
+                    handleButtonAction(currentButton);
+                    buttonPressed = true;
                 }
+            } else {
+                buttonPressed = false;
             }
         }
         vTaskDelay(pdMS_TO_TICKS(20));

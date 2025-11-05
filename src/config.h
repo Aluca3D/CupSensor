@@ -9,6 +9,7 @@
 // Ultrasonic Sensor's
 #define US_WATER_ECHO_PIN     42
 #define US_WATER_TRIGGER_PIN  41
+
 #define US_HEIGHT_ECHO_PIN    40
 #define US_HEIGHT_TRIGGER_PIN 39
 
@@ -51,7 +52,7 @@
 #define SCREEN_WIDTH            320
 #define SCREEN_HEIGHT           240
 #define FONT_SIZE               2
-#define TOUCH_PRESSURE_PRESSED  4150
+#define TOUCH_PRESSURE_PRESSED  1800
 #define TOUCH_DEBOUNCE_DELAY_MS 100
 
 #define TOUCH_LEFT  3700
