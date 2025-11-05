@@ -7,7 +7,7 @@ QueueHandle_t buttonQueue = nullptr;
 
 void sendPressedButton(ButtonID buttonPressed) {
     if (buttonQueue && buttonPressed != BUTTON_COUNT) {
-        debugPrint(LOG_DEBUG, "Sending button pressed %d\n", buttonPressed);
+        debugPrint(LOG_DEBUG, "Sending button pressed %d", buttonPressed);
         xQueueSend(buttonQueue, &buttonPressed, 0);
     }
 }
@@ -15,7 +15,7 @@ void sendPressedButton(ButtonID buttonPressed) {
 ButtonID receivePressedButton() {
     ButtonID buttonPressed = BUTTON_COUNT;
     if (xQueueReceive(buttonQueue, &buttonPressed, portMAX_DELAY)) {
-        debugPrint(LOG_DEBUG, "Received button pressed %d\n", buttonPressed);
+        debugPrint(LOG_DEBUG, "Received button pressed %d", buttonPressed);
         return buttonPressed;
     }
     return BUTTON_COUNT;

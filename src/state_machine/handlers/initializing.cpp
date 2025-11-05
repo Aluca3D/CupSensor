@@ -30,6 +30,7 @@ unsigned long setupHeight = 0;
                 servoDetach();
                 // Set Init Variables
                 setupHeight = getAverageDistance(WaterTrigger, WaterEcho);
+                debugPrint(LOG_DEBUG, "setupHeight Set to: %d", setupHeight);
                 sendStateEvent(EVENT_DONE);
             }
         }
