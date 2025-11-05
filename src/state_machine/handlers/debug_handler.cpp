@@ -41,6 +41,7 @@ void debugPrint(DebugLevel level, const char *message, ...) {
 
 
 [[noreturn]] void debugTask(void *parameters) {
+    debugPrint(LOG_INFO, "debugTask started on core %d", xPortGetCoreID());
     char buffer[DEBUG_MESSAGE_LENGTH];
 
     for (;;) {
@@ -63,7 +64,9 @@ void debugBegin() {
         nullptr,
         PRIORITY_IDLE,
         nullptr,
-        CORE_ID_0);
+        CORE_ID_0
+    );
+    delay(20);
 }
 
 #endif
