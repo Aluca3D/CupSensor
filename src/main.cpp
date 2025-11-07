@@ -11,6 +11,7 @@
 #include "modules/servo.h"
 #include "modules/ultra_sonic_sensor.h"
 #include "state_machine/state.h"
+#include "state_machine/handlers/abort_handler.h"
 #include "state_machine/handlers/debug_handler.h"
 #include "state_machine/handlers/fill_handler.h"
 #include "state_machine/handlers/initializing.h"
@@ -50,12 +51,12 @@ void setup() {
     createCheckUserInputTask();
     createStateMachineTask();
 
+    createAbortTask();
     createInitTask();
     createScannTask();
     createFillTask();
 
     sendStateEvent(EVENT_START);
-    sendScreenEvent(SCREEN_EVENT_START);
 }
 
 void loop() {

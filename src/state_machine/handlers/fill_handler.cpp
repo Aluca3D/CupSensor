@@ -2,7 +2,6 @@
 
 #include "debug_handler.h"
 #include "globals.h"
-#include "screen_handler.h"
 #include "modules/pump_relay.h"
 #include "modules/touch_screen.h"
 #include "state_machine/state.h"
@@ -59,14 +58,11 @@ ButtonID receivePressedButton() {
                 // Remove
                 delay(10000);
                 sendStateEvent(EVENT_DONE);
-                sendScreenEvent(SCREEN_EVENT_DONE);
             } else if (current == STATE_FINISHED && pumpRelay != PUMP_NONE) {
                 debugPrint(LOG_INFO, "Stopping pump %d", pumpRelay);
                 stopPump(pumpRelay);
                 pumpRelay = PUMP_NONE;
             } else if (current == STATE_ABORT) {
-                debugPrint(LOG_INFO, "Stopping All Pumps");
-                stopAllPumps();
                 pumpRelay = PUMP_NONE;
             }
         }

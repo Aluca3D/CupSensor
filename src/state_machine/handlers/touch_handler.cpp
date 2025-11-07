@@ -6,12 +6,11 @@
 #include "debug_handler.h"
 #include "globals.h"
 #include "fill_handler.h"
-#include "screen_handler.h"
 #include "state_machine/state.h"
 #include "modules/touch_screen.h"
 
 void handleButtonAction(SystemState current, ButtonID button) {
-    debugPrint(LOG_DEBUG, "CURRENT: State=%d, Button=%d", current, button);
+    debugPrint(LOG_DEBUG, "Current: State=%d, Button=%d", current, button);
     switch (current) {
         case STATE_IDLE:
             switch (button) {
@@ -20,7 +19,6 @@ void handleButtonAction(SystemState current, ButtonID button) {
                 case FLUID_2:
                     sendPressedButton(button);
                     sendStateEvent(EVENT_START);
-                    sendScreenEvent(SCREEN_EVENT_START);
                     break;
                 default:
                     break;
@@ -33,18 +31,15 @@ void handleButtonAction(SystemState current, ButtonID button) {
             if (button == ABORT) {
                 sendPressedButton(ABORT);
                 sendStateEvent(EVENT_STOP);
-                sendScreenEvent(SCREEN_EVENT_STOP);
             }
             break;
 
         case STATE_FINISHED:
-
         case STATE_ERROR:
         case STATE_ABORT:
             if (button == CONTINUE) {
                 sendPressedButton(CONTINUE);
                 sendStateEvent(EVENT_DONE);
-                sendScreenEvent(SCREEN_EVENT_DONE);
             }
             break;
 

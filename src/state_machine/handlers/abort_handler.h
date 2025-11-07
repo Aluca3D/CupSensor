@@ -1,0 +1,6 @@
+#ifndef CUPSENSOR_ABORT_HANDLER_H
+#define CUPSENSOR_ABORT_HANDLER_H
+
+void createAbortTask();
+
+#endif //CUPSENSOR_ABORT_HANDLER_H

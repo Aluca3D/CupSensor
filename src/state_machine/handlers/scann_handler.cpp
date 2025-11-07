@@ -4,7 +4,6 @@
 
 #include "debug_handler.h"
 #include "globals.h"
-#include "modules/servo.h"
 #include "state_machine/state.h"
 
 
@@ -26,8 +25,10 @@
                 //        servoMoveToo(0.0f);
                 //    }
                 //}
-                delay(2000);
-                //sendStateEvent(EVENT_DONE);
+
+                // Todo: Write Scann Height Logic
+                delay(4000);
+                sendStateEvent(EVENT_DONE);
             }
         }
         vTaskDelay(pdMS_TO_TICKS(20));
@@ -44,9 +45,9 @@
             lastSeenState = current;
 
             if (current == STATE_SCANNING_FLUID) {
-                // TODO:
-                delay(2000);
-                //sendStateEvent(EVENT_DONE);
+                // TODO: Write Logic so that State Change goes Smoothly even when Aborting.
+                delay(4000);
+                sendStateEvent(EVENT_DONE);
             }
         }
         vTaskDelay(pdMS_TO_TICKS(20));
