@@ -12,6 +12,7 @@
 #include "modules/ultra_sonic_sensor.h"
 #include "state_machine/state.h"
 #include "state_machine/handlers/debug_handler.h"
+#include "state_machine/handlers/fill_handler.h"
 #include "state_machine/handlers/initializing.h"
 #include "state_machine/handlers/scann_handler.h"
 #include "state_machine/handlers/screen_handler.h"
@@ -65,6 +66,7 @@ void setup() {
 
     createInitTask();
     createScannTask();
+    createFillTask();
 
     xTaskCreatePinnedToCore(
         test,
