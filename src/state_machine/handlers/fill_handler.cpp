@@ -55,7 +55,7 @@ ButtonID receivePressedButton() {
             if (current == STATE_FILLING && pumpRelay != PUMP_NONE) {
                 debugPrint(LOG_INFO, "Starting pump %d", pumpRelay);
                 startPump(pumpRelay);
-                // Remove
+                // TODO: Checker Logic that checks CupHeight and Fluid Level
                 delay(10000);
                 sendStateEvent(EVENT_DONE);
             } else if (current == STATE_FINISHED && pumpRelay != PUMP_NONE) {
