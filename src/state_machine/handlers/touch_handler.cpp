@@ -6,45 +6,45 @@
 #include "debug_handler.h"
 #include "globals.h"
 #include "fill_handler.h"
+#include "screen_handler.h"
 #include "state_machine/state.h"
 #include "modules/touch_screen.h"
 
-void handleButtonAction(ButtonID button) {
-    switch (currentState) {
+void handleButtonAction(SystemState current, ButtonID button) {
+    debugPrint(LOG_DEBUG, "CURRENT: State=%d, Button=%d", current, button);
+    switch (current) {
         case STATE_IDLE:
             switch (button) {
                 case FLUID_0:
-                    debugPrint(LOG_DEBUG, "Starting fill with FLUID_0");
-                    sendPressedButton(FLUID_0);
-                    break;
                 case FLUID_1:
-                    debugPrint(LOG_DEBUG, "Starting fill with FLUID_1");
-                    sendPressedButton(FLUID_1);
-                    break;
                 case FLUID_2:
-                    debugPrint(LOG_DEBUG, "Starting fill with FLUID_2");
-                    sendPressedButton(FLUID_2);
+                    sendPressedButton(button);
+                    sendStateEvent(EVENT_START);
+                    sendScreenEvent(SCREEN_EVENT_START);
                     break;
                 default:
                     break;
             }
             break;
-
         case STATE_FILLING:
         case STATE_SCANNING_FLUID:
         case STATE_RESET_POSITION:
         case STATE_SCANNING_HEIGHT:
             if (button == ABORT) {
-                debugPrint(LOG_DEBUG, "Starting fill with ABORT");
                 sendPressedButton(ABORT);
+                sendStateEvent(EVENT_STOP);
+                sendScreenEvent(SCREEN_EVENT_STOP);
             }
             break;
 
-        case STATE_ERROR:
         case STATE_FINISHED:
+
+        case STATE_ERROR:
+        case STATE_ABORT:
             if (button == CONTINUE) {
-                debugPrint(LOG_DEBUG, "Starting fill with CONTINUE");
                 sendPressedButton(CONTINUE);
+                sendStateEvent(EVENT_DONE);
+                sendScreenEvent(SCREEN_EVENT_DONE);
             }
             break;
 
@@ -62,6 +62,7 @@ void handleButtonAction(ButtonID button) {
 
     for (;;) {
         TS_Point point = ts.getPoint();
+        SystemState current = currentState;
         const ButtonID currentButton = getTouchScreenButtonPressed(point);
 
         if (currentButton != lastButton) {
@@ -72,7 +73,7 @@ void handleButtonAction(ButtonID button) {
         if (xTaskGetTickCount() - lastChangeTime > pdMS_TO_TICKS(TOUCH_DEBOUNCE_DELAY_MS)) {
             if (currentButton != BUTTON_COUNT) {
                 if (!buttonPressed) {
-                    handleButtonAction(currentButton);
+                    handleButtonAction(current, currentButton);
                     buttonPressed = true;
                 }
             } else {
@@ -89,7 +90,7 @@ void createCheckUserInputTask() {
         "checkUserInputTask",
         4096,
         nullptr,
-        PRIORITY_HIGH,
+        PRIORITY_NORMAL,
         nullptr,
         CORE_ID_1
     );

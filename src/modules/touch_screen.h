@@ -1,6 +1,8 @@
 #ifndef CUPSENSOR_TOUCHSCREEN_H
 #define CUPSENSOR_TOUCHSCREEN_H
 
+#include <Arduino.h>
+
 #include <Adafruit_ILI9341.h>
 #include <SPI.h>
 #include <XPT2046_Touchscreen.h>
@@ -48,6 +50,11 @@ constexpr ButtonRect BUTTONS[BUTTON_COUNT] = {
     {"Continue", 80, 80, 140, 120, COLOR_GREEN}
 };
 
+constexpr size_t MAX_ACTIVE_BUTTONS = BUTTON_COUNT;
+
+extern std::array<ButtonID, MAX_ACTIVE_BUTTONS> activeButtons;
+extern size_t activeButtonsCount;
+
 void initializeTouchScreen();
 
 void setScreenColor(ScreenColor color);
@@ -55,6 +62,8 @@ void setScreenColor(ScreenColor color);
 void drawButton(ButtonID id);
 
 void resetButton(ButtonID id);
+
+void resetScreen();
 
 bool isScreenPressed(TS_Point &point);
 

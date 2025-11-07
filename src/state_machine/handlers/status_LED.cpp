@@ -40,6 +40,7 @@
                     setStatusLED(STATUS_BLUE);
                     break;
                 case STATE_ERROR:
+                case STATE_ABORT:
                     setStatusLED(STATUS_RED);
                     break;
                 case STATE_FINISHED:

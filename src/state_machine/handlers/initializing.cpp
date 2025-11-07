@@ -17,7 +17,7 @@ unsigned long setupHeight = 0;
     SystemState lastSeenState = STATE_OFF;
 
     for (;;) {
-        SystemState current = currentState;
+        const SystemState current = currentState;
         if (current != lastSeenState) {
             lastSeenState = current;
 

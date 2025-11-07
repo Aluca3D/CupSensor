@@ -6,6 +6,7 @@ enum PumpRelays {
     PUMP_1 = RELAY_0_PIN,
     PUMP_2 = RELAY_1_PIN,
     PUMP_3 = RELAY_2_PIN,
+    PUMP_NONE = 0
 };
 
 void initializePumpRelays();

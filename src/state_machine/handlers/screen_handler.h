@@ -10,6 +10,7 @@ enum ScreenState {
     SCREEN_FILLING,
     SCREEN_FINISHED,
     SCREEN_ERROR,
+    SCREEN_ABORT,
 };
 
 enum ScreenEvent {

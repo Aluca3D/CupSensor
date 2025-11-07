@@ -11,6 +11,7 @@ enum SystemState {
     STATE_SCANNING_FLUID,
     STATE_FILLING,
     STATE_ERROR,
+    STATE_ABORT,
     STATE_FINISHED,
 };
 
@@ -18,6 +19,7 @@ enum SystemEvent {
     EVENT_NONE,
     EVENT_START,
     EVENT_DONE,
+    EVENT_SCANN,
     EVENT_ERROR,
     EVENT_STOP,
 };

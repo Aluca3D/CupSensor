@@ -2,6 +2,10 @@
 
 #include "config.h"
 #include "XPT2046_Touchscreen.h"
+#include "state_machine/handlers/debug_handler.h"
+
+std::array<ButtonID, MAX_ACTIVE_BUTTONS> activeButtons{};
+size_t activeButtonsCount = 0;
 
 void initializeTouchScreen() {
     // Screen
@@ -37,6 +41,18 @@ void resetButton(ButtonID id) {
     tft.fillRect(button.x, button.y, button.w, button.h, COLOR_OFF);
 }
 
+void resetScreen() {
+    if (activeButtonsCount == 0) {
+        debugPrint(LOG_WARNING, "resetScreen called but no active buttons");
+        return;
+    }
+    for (size_t i = 0; i < activeButtonsCount; i++) {
+        const ButtonID id = activeButtons[i];
+        debugPrint(LOG_INFO, "Resetting Button: %d", id);
+        resetButton(id);
+    }
+}
+
 bool isScreenPressed(TS_Point &point) {
     if (!ts.touched()) return false;
     return (point.z > TOUCH_PRESSURE_PRESSED);
@@ -51,11 +67,12 @@ ButtonID getTouchScreenButtonPressed(TS_Point &point) {
     x = constrain(x, 0, SCREEN_WIDTH - 1);
     y = constrain(y, 0, SCREEN_HEIGHT - 1);
 
-    for (int i = 0; i < BUTTON_COUNT; i++) {
-        const auto &button = BUTTONS[i];
+    for (size_t i = 0; i < activeButtonsCount; i++) {
+        const ButtonID id = activeButtons[i];
+        const auto &button = BUTTONS[id];
         if (x >= button.x && x <= button.x + button.w &&
             y >= button.y && y <= button.y + button.h) {
-            return static_cast<ButtonID>(i);
+            return id;
         }
     }
     return BUTTON_COUNT;

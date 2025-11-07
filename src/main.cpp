@@ -37,20 +37,6 @@ XPT2046_Touchscreen ts(TOUCH_CS_PIN, TOUCH_IRQ_PIN);
  * (For Error/Abort to stop scanning, Servo and Pumps)
  */
 
-[[noreturn]] void test(void *pvParameters) {
-    for (;;) {
-        if (!getIsMoving() && currentState != STATE_INITIALIZING) {
-            vTaskDelay(pdMS_TO_TICKS(1000)); // wait before reversing
-            if (getDistanceMoved() <= 0.05) {
-                servoMoveToo(10.0f);
-            } else {
-                servoMoveToo(0.0f);
-            }
-        }
-        vTaskDelay(pdMS_TO_TICKS(100)); // yield time even while moving
-    }
-}
-
 void setup() {
     debugBegin();
 
@@ -67,16 +53,6 @@ void setup() {
     createInitTask();
     createScannTask();
     createFillTask();
-
-    xTaskCreatePinnedToCore(
-        test,
-        "testTask",
-        4096,
-        nullptr,
-        PRIORITY_NORMAL,
-        nullptr,
-        CORE_ID_0
-    );
 
     sendStateEvent(EVENT_START);
     sendScreenEvent(SCREEN_EVENT_START);

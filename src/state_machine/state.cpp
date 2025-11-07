@@ -49,6 +49,8 @@ void sendStateEvent(SystemEvent event) {
                 case STATE_SCANNING_HEIGHT:
                     if (event == EVENT_DONE) {
                         currentState = STATE_SCANNING_FLUID;
+                    } else if (event == EVENT_STOP) {
+                        currentState = STATE_ABORT;
                     } else if (event == EVENT_ERROR) {
                         currentState = STATE_ERROR;
                     }
@@ -57,38 +59,47 @@ void sendStateEvent(SystemEvent event) {
                 case STATE_SCANNING_FLUID:
                     if (event == EVENT_DONE) {
                         currentState = STATE_FILLING;
+                    } else if (event == EVENT_STOP) {
+                        currentState = STATE_ABORT;
                     } else if (event == EVENT_ERROR) {
                         currentState = STATE_ERROR;
                     }
                     break;
 
                 case STATE_FILLING:
-                    if (event == EVENT_DONE) {
+                    if (event == EVENT_SCANN) {
+                        currentState = STATE_SCANNING_FLUID;
+                    } else if (event == EVENT_DONE) {
                         currentState = STATE_FINISHED;
+                    } else if (event == EVENT_STOP) {
+                        currentState = STATE_ABORT;
                     } else if (event == EVENT_ERROR) {
                         currentState = STATE_ERROR;
                     }
                     break;
 
-                case STATE_FINISHED:
-                    if (event == EVENT_STOP) {
-                        currentState = STATE_IDLE;
+                case STATE_RESET_POSITION:
+                    if (event == EVENT_DONE) {
+                        currentState = STATE_FINISHED;
+                    } else if (event == EVENT_STOP) {
+                        currentState = STATE_ABORT;
+                    } else if (event == EVENT_ERROR) {
+                        currentState = STATE_ERROR;
                     }
                     break;
 
+                case STATE_ABORT:
                 case STATE_ERROR:
-                    if (event == EVENT_STOP) {
-                        currentState = STATE_FINISHED;
+                case STATE_FINISHED:
+                    if (event == EVENT_DONE) {
+                        currentState = STATE_IDLE;
                     }
                     break;
 
                 default:
                     break;
             }
-
-            // Optional debug log
-            debugPrint(LOG_DEBUG, "Transition: %d → %d (event=%d)", lastState, currentState, event);
-
+            debugPrint(LOG_DEBUG, "Transition State: %d → %d (event=%d)", lastState, currentState, event);
         }
         vTaskDelay(pdMS_TO_TICKS(10));
     }
