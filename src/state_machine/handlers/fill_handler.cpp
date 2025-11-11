@@ -2,6 +2,7 @@
 
 #include "debug_handler.h"
 #include "globals.h"
+#include "scann_handler.h"
 #include "modules/pump_relay.h"
 #include "modules/touch_screen.h"
 #include "state_machine/state.h"
@@ -9,15 +10,23 @@
 QueueHandle_t buttonQueue = nullptr;
 
 void sendPressedButton(ButtonID buttonPressed) {
-    if (buttonQueue && buttonPressed != BUTTON_COUNT) {
-        debugPrint(LOG_INFO, "Sending button pressed %d", buttonPressed);
-        xQueueSend(buttonQueue, &buttonPressed, 0);
+    if (!buttonQueue) return;
+
+    if (buttonPressed == BUTTON_COUNT) return;
+
+    debugPrint(LOG_INFO, "Attempting sending buttonPressed: %d", buttonPressed);
+    if (xQueueSend(buttonQueue, &buttonPressed, pdMS_TO_TICKS(100)) != pdPASS) {
+        debugPrint(LOG_WARNING, "Failed to send buttonPressed: %d (queue full)", buttonPressed);
+    } else {
+        debugPrint(LOG_INFO, "Succeeded in sending buttonPressed: %d", buttonPressed);
     }
 }
 
 ButtonID receivePressedButton() {
+    if (!buttonQueue) return BUTTON_COUNT;
+
     ButtonID buttonPressed = BUTTON_COUNT;
-    if (xQueueReceive(buttonQueue, &buttonPressed, portMAX_DELAY)) {
+    if (xQueueReceive(buttonQueue, &buttonPressed, pdMS_TO_TICKS(100))) {
         debugPrint(LOG_INFO, "Received button pressed %d", buttonPressed);
         return buttonPressed;
     }
@@ -28,13 +37,13 @@ ButtonID receivePressedButton() {
     debugPrint(LOG_INFO, "fillCupTask started on core %d", xPortGetCoreID());
     SystemState lastSeenState = STATE_OFF;
     PumpRelays pumpRelay = PUMP_NONE;
+    bool alreadyFull = false;
 
     for (;;) {
-        SystemState current = currentState;
+        const SystemState current = currentState;
 
-        if (uxQueueMessagesWaiting(buttonQueue) > 0) {
-            ButtonID buttonPressed = receivePressedButton();
-
+        const ButtonID buttonPressed = receivePressedButton();
+        if (buttonPressed != BUTTON_COUNT) {
             switch (buttonPressed) {
                 case FLUID_0: pumpRelay = PUMP_1;
                     break;
@@ -49,20 +58,27 @@ ButtonID receivePressedButton() {
             debugPrint(LOG_INFO, "Selected fluid button: %d -> relay %d", buttonPressed, pumpRelay);
         }
 
+        const bool cupIsFull = receiveIsCupFull();
+        if (cupIsFull && !alreadyFull) {
+            sendStateEvent(EVENT_DONE);
+            alreadyFull = true;
+        } else if (!cupIsFull) {
+            alreadyFull = false;
+        }
+
         if (current != lastSeenState) {
             lastSeenState = current;
 
-            if (current == STATE_FILLING && pumpRelay != PUMP_NONE) {
+            if (current == STATE_SCANNING_FLUID_A_FILLING && pumpRelay != PUMP_NONE) {
                 debugPrint(LOG_INFO, "Starting pump %d", pumpRelay);
                 startPump(pumpRelay);
-                // TODO: Checker Logic that checks CupHeight and Fluid Level
-                delay(10000);
-                sendStateEvent(EVENT_DONE);
             } else if (current == STATE_FINISHED && pumpRelay != PUMP_NONE) {
                 debugPrint(LOG_INFO, "Stopping pump %d", pumpRelay);
                 stopPump(pumpRelay);
                 pumpRelay = PUMP_NONE;
-            } else if (current == STATE_ABORT) {
+            } else if (current == STATE_ABORT && pumpRelay != PUMP_NONE) {
+                debugPrint(LOG_INFO, "Aborting, stopping pump %d", pumpRelay);
+                stopPump(pumpRelay);
                 pumpRelay = PUMP_NONE;
             }
         }
@@ -70,7 +86,6 @@ ButtonID receivePressedButton() {
         vTaskDelay(pdMS_TO_TICKS(20));
     }
 }
-
 
 void createFillTask() {
     buttonQueue = xQueueCreate(BUTTON_COUNT, sizeof(ButtonID));

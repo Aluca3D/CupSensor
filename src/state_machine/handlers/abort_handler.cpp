@@ -18,6 +18,7 @@
             lastSeenState = current;
 
             if (current == STATE_ABORT) {
+                // TODO: add screen message (from where it aborted)
                 debugPrint(LOG_INFO, "Stopping All Pumps");
                 stopAllPumps();
             }

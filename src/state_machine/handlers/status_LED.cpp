@@ -32,12 +32,8 @@
                     setStatusLED(STATUS_YELLOW);
                     break;
                 case STATE_SCANNING_HEIGHT:
-                case STATE_SCANNING_FLUID:
+                case STATE_SCANNING_FLUID_A_FILLING:
                     setStatusLED(STATUS_CYAN);
-                    break;
-                case STATE_RESET_POSITION:
-                case STATE_FILLING:
-                    setStatusLED(STATUS_BLUE);
                     break;
                 case STATE_ERROR:
                 case STATE_ABORT:

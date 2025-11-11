@@ -25,7 +25,7 @@ void handleButtonAction(SystemState current, ButtonID button) {
             }
             break;
         case STATE_FILLING:
-        case STATE_SCANNING_FLUID:
+        case STATE_SCANNING_FLUID_A_FILLING:
         case STATE_RESET_POSITION:
         case STATE_SCANNING_HEIGHT:
             if (button == ABORT) {

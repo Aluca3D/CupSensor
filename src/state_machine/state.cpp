@@ -10,17 +10,34 @@ volatile SystemState lastState = STATE_OFF;
 QueueHandle_t stateEventQueue = nullptr;
 
 void sendStateEvent(SystemEvent event) {
-    if (stateEventQueue) {
-        xQueueSend(stateEventQueue, &event, 0);
+    if (!stateEventQueue) return;
+
+    debugPrint(LOG_INFO, "Attempting sending event: %d", event);
+    if (xQueueSend(stateEventQueue, &event, pdMS_TO_TICKS(100)) != pdPASS) {
+        debugPrint(LOG_WARNING, "Failed to send event: %d (queue full)", event);
+    } else {
+        debugPrint(LOG_INFO, "Succeeded in sending event: %d", event);
     }
+}
+
+SystemEvent receiveStateEvent() {
+    if (!stateEventQueue) return EVENT_NONE;
+
+    SystemEvent event = EVENT_NONE;
+    if (xQueueReceive(stateEventQueue, &event, pdMS_TO_TICKS(100))) {
+        debugPrint(LOG_INFO, "Received event: %d", event);
+        return event;
+    }
+
+    return EVENT_NONE;
 }
 
 [[noreturn]] void stateMachineTask(void *pvParameters) {
     debugPrint(LOG_INFO, "stateMachineTask started on core %d", xPortGetCoreID());
-    SystemEvent event = EVENT_NONE;
 
     for (;;) {
-        if (xQueueReceive(stateEventQueue, &event, portMAX_DELAY)) {
+        SystemEvent event = receiveStateEvent();
+        if (event != EVENT_NONE) {
             lastState = currentState;
 
             switch (currentState) {
@@ -48,7 +65,7 @@ void sendStateEvent(SystemEvent event) {
 
                 case STATE_SCANNING_HEIGHT:
                     if (event == EVENT_DONE) {
-                        currentState = STATE_SCANNING_FLUID;
+                        currentState = STATE_SCANNING_FLUID_A_FILLING;
                     } else if (event == EVENT_STOP) {
                         currentState = STATE_ABORT;
                     } else if (event == EVENT_ERROR) {
@@ -56,29 +73,7 @@ void sendStateEvent(SystemEvent event) {
                     }
                     break;
 
-                case STATE_SCANNING_FLUID:
-                    if (event == EVENT_DONE) {
-                        currentState = STATE_FILLING;
-                    } else if (event == EVENT_STOP) {
-                        currentState = STATE_ABORT;
-                    } else if (event == EVENT_ERROR) {
-                        currentState = STATE_ERROR;
-                    }
-                    break;
-
-                case STATE_FILLING:
-                    if (event == EVENT_SCANN) {
-                        currentState = STATE_SCANNING_FLUID;
-                    } else if (event == EVENT_DONE) {
-                        currentState = STATE_FINISHED;
-                    } else if (event == EVENT_STOP) {
-                        currentState = STATE_ABORT;
-                    } else if (event == EVENT_ERROR) {
-                        currentState = STATE_ERROR;
-                    }
-                    break;
-
-                case STATE_RESET_POSITION:
+                case STATE_SCANNING_FLUID_A_FILLING:
                     if (event == EVENT_DONE) {
                         currentState = STATE_FINISHED;
                     } else if (event == EVENT_STOP) {

@@ -34,9 +34,8 @@
                     activeButtons[activeButtonsCount++] = FLUID_1;
                     activeButtons[activeButtonsCount++] = FLUID_2;
                     break;
-                case STATE_SCANNING_FLUID:
+                case STATE_SCANNING_FLUID_A_FILLING:
                 case STATE_SCANNING_HEIGHT:
-                case STATE_FILLING:
                     drawButton(ABORT);
                     activeButtons[activeButtonsCount++] = ABORT;
                     break;
