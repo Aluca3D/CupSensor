@@ -7,6 +7,11 @@
 #include "modules/touch_screen.h"
 #include "state_machine/state.h"
 
+void addButton(ButtonID button) {
+    drawButton(button);
+    activeButtons[activeButtonsCount++] = button;
+}
+
 // TODO: Add all screen States and new Screen Print Functions (to Modules)
 [[noreturn]] void updateScreenTask(void *parameters) {
     debugPrint(LOG_INFO, "updateScreenTask started on core %d", xPortGetCoreID());
@@ -26,30 +31,20 @@
 
             switch (current) {
                 case STATE_IDLE:
-                    drawButton(FLUID_0);
-                    drawButton(FLUID_1);
-                    drawButton(FLUID_2);
-
-                    activeButtons[activeButtonsCount++] = FLUID_0;
-                    activeButtons[activeButtonsCount++] = FLUID_1;
-                    activeButtons[activeButtonsCount++] = FLUID_2;
+                    addButton(FLUID_0);
+                    addButton(FLUID_1);
+                    addButton(FLUID_2);
                     break;
+
                 case STATE_SCANNING_FLUID_A_FILLING:
                 case STATE_SCANNING_HEIGHT:
-                    drawButton(ABORT);
-                    activeButtons[activeButtonsCount++] = ABORT;
+                    addButton(ABORT);
                     break;
+
                 case STATE_ABORT:
-                    drawButton(CONTINUE);
-                    activeButtons[activeButtonsCount++] = CONTINUE;
-                    break;
                 case STATE_ERROR:
-                    drawButton(CONTINUE);
-                    activeButtons[activeButtonsCount++] = CONTINUE;
-                    break;
                 case STATE_FINISHED:
-                    drawButton(CONTINUE);
-                    activeButtons[activeButtonsCount++] = CONTINUE;
+                    addButton(CONTINUE);
                     break;
                 default:
                     break;

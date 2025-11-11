@@ -87,7 +87,7 @@ void createScannTask() {
     xTaskCreatePinnedToCore(
         scannCupHeight,
         "scannCupHeight",
-        4096,
+        STACK_SIZE_LARGE,
         nullptr,
         PRIORITY_NORMAL,
         nullptr,
@@ -96,7 +96,7 @@ void createScannTask() {
     xTaskCreatePinnedToCore(
         scannFluidHeight,
         "scannFluidHeight",
-        4096,
+        STACK_SIZE_LARGE,
         nullptr,
         PRIORITY_HIGH,
         nullptr,

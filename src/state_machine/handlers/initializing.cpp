@@ -42,7 +42,7 @@ void createInitTask() {
     xTaskCreatePinnedToCore(
         &initializingTask,
         "initializingTask",
-        2048,
+        STACK_SIZE_MEDIUM,
         nullptr,
         PRIORITY_NORMAL,
         nullptr,

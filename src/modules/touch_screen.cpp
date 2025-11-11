@@ -14,7 +14,7 @@ void initializeTouchScreen() {
     tft.begin();
     tft.setRotation(SCREEN_ROTATION);
     tft.setCursor(0, 0);
-    setScreenColor(COLOR_OFF);
+    setScreenColor(COLOR_BLACK);
     // Touch
     tsSPI.begin(
         TOUCH_CLK_PIN, TOUCH_DO_PIN,
@@ -30,15 +30,20 @@ void setScreenColor(ScreenColor color) {
 
 void drawButton(ButtonID id) {
     const auto &button = BUTTONS[id];
-    tft.fillRect(button.x, button.y, button.w, button.h, button.color);
-    tft.setCursor(button.x + 10, button.y + 15);
+
+    const int16_t x_center = button.x + (button.w / 2) - (strlen(button.label) * 6 * FONT_SIZE) / 2;
+    const int16_t y_center = button.y + (button.h / 2) - (8 * FONT_SIZE) / 2;
+
+    tft.fillRect(button.x, button.y, button.w, button.h, button.buttonColor);
+    tft.setCursor(x_center, y_center);
     tft.setTextSize(FONT_SIZE);
+    tft.setTextColor(button.fontColor);
     tft.print(button.label);
 }
 
 void resetButton(ButtonID id) {
     const auto &button = BUTTONS[id];
-    tft.fillRect(button.x, button.y, button.w, button.h, COLOR_OFF);
+    tft.fillRect(button.x, button.y, button.w, button.h, COLOR_BLACK);
 }
 
 void resetScreen() {

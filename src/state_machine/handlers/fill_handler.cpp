@@ -98,7 +98,7 @@ void createFillTask() {
     xTaskCreatePinnedToCore(
         fillCupTask,
         "fillCupTask",
-        4096,
+        STACK_SIZE_LARGE,
         nullptr,
         PRIORITY_HIGH,
         nullptr,

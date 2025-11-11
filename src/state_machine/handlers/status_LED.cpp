@@ -55,7 +55,7 @@ void createLEDTask() {
     xTaskCreatePinnedToCore(
         LEDTask,
         "LEDTask",
-        2048,
+        STACK_SIZE_MEDIUM,
         nullptr,
         PRIORITY_IDLE,
         nullptr,

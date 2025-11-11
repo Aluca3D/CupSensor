@@ -16,7 +16,7 @@ constexpr uint16_t color565(uint8_t r, uint8_t g, uint8_t b) {
 }
 
 enum ScreenColor {
-    COLOR_OFF = color565(0, 0, 0),
+    COLOR_BLACK = color565(0, 0, 0),
     COLOR_RED = color565(255, 0, 0),
     COLOR_GREEN = color565(0, 255, 0),
     COLOR_BLUE = color565(0, 0, 255),
@@ -28,8 +28,9 @@ enum ScreenColor {
 
 struct ButtonRect {
     const char *label;
-    int x, y, w, h;
-    ScreenColor color;
+    int16_t x, y, w, h;
+    ScreenColor buttonColor;
+    ScreenColor fontColor;
 };
 
 enum ButtonID {
@@ -42,12 +43,12 @@ enum ButtonID {
 };
 
 constexpr ButtonRect BUTTONS[BUTTON_COUNT] = {
-    {"Fluid 0", 15, 20, 90, 200, COLOR_BLUE},
-    {"Fluid 1", 115, 20, 90, 200, COLOR_YELLOW},
-    {"Fluid 2", 215, 20, 90, 200, COLOR_CYAN},
+    {"Fluid 0", 15, 20, 90, 200, COLOR_BLUE, COLOR_BLACK},
+    {"Fluid 1", 115, 20, 90, 200, COLOR_YELLOW, COLOR_BLACK},
+    {"Fluid 2", 215, 20, 90, 200, COLOR_CYAN, COLOR_BLACK},
 
-    {"Abort", 80, 80, 140, 120, COLOR_RED},
-    {"Continue", 80, 80, 140, 120, COLOR_GREEN}
+    {"Abort", 80, 80, 140, 120, COLOR_RED, COLOR_BLACK},
+    {"Continue", 80, 80, 140, 120, COLOR_GREEN, COLOR_BLACK}
 };
 
 constexpr size_t MAX_ACTIVE_BUTTONS = BUTTON_COUNT;

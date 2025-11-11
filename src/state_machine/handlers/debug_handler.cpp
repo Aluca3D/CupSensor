@@ -51,6 +51,8 @@ void debugPrint(DebugLevel level, const char *message, ...) {
     }
 }
 
+// TODO: add Function that Prints (Using DebugPrint) the Used Task Stack Size
+
 void debugBegin() {
     Serial.begin(DEBUG_SERIAL);
 
@@ -60,7 +62,7 @@ void debugBegin() {
     xTaskCreatePinnedToCore(
         debugTask,
         "DebugTask",
-        4096,
+        STACK_SIZE_LARGE,
         nullptr,
         PRIORITY_IDLE,
         nullptr,

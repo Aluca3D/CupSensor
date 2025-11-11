@@ -32,68 +32,73 @@ SystemEvent receiveStateEvent() {
     return EVENT_NONE;
 }
 
+void handleState(SystemEvent event, SystemState state) {
+    switch (state) {
+        case STATE_OFF:
+            if (event == EVENT_START) {
+                currentState = STATE_INITIALIZING;
+            }
+            break;
+
+        case STATE_INITIALIZING:
+            if (event == EVENT_DONE) {
+                currentState = STATE_IDLE;
+            } else if (event == EVENT_ERROR) {
+                currentState = STATE_ERROR;
+            }
+            break;
+
+        case STATE_IDLE:
+            if (event == EVENT_START) {
+                currentState = STATE_SCANNING_HEIGHT;
+            } else if (event == EVENT_ERROR) {
+                currentState = STATE_ERROR;
+            }
+            break;
+
+        case STATE_SCANNING_HEIGHT:
+            if (event == EVENT_DONE) {
+                currentState = STATE_SCANNING_FLUID_A_FILLING;
+            } else if (event == EVENT_STOP) {
+                currentState = STATE_ABORT;
+            } else if (event == EVENT_ERROR) {
+                currentState = STATE_ERROR;
+            }
+            break;
+
+        case STATE_SCANNING_FLUID_A_FILLING:
+            if (event == EVENT_DONE) {
+                currentState = STATE_FINISHED;
+            } else if (event == EVENT_STOP) {
+                currentState = STATE_ABORT;
+            } else if (event == EVENT_ERROR) {
+                currentState = STATE_ERROR;
+            }
+            break;
+
+        case STATE_ABORT:
+        case STATE_ERROR:
+        case STATE_FINISHED:
+            if (event == EVENT_DONE) {
+                currentState = STATE_IDLE;
+            }
+            break;
+
+        default:
+            break;
+    }
+}
+
 [[noreturn]] void stateMachineTask(void *pvParameters) {
     debugPrint(LOG_INFO, "stateMachineTask started on core %d", xPortGetCoreID());
 
     for (;;) {
-        SystemEvent event = receiveStateEvent();
+        const SystemEvent event = receiveStateEvent();
         if (event != EVENT_NONE) {
             lastState = currentState;
 
-            switch (currentState) {
-                case STATE_OFF:
-                    if (event == EVENT_START) {
-                        currentState = STATE_INITIALIZING;
-                    }
-                    break;
+            handleState(event, currentState);
 
-                case STATE_INITIALIZING:
-                    if (event == EVENT_DONE) {
-                        currentState = STATE_IDLE;
-                    } else if (event == EVENT_ERROR) {
-                        currentState = STATE_ERROR;
-                    }
-                    break;
-
-                case STATE_IDLE:
-                    if (event == EVENT_START) {
-                        currentState = STATE_SCANNING_HEIGHT;
-                    } else if (event == EVENT_ERROR) {
-                        currentState = STATE_ERROR;
-                    }
-                    break;
-
-                case STATE_SCANNING_HEIGHT:
-                    if (event == EVENT_DONE) {
-                        currentState = STATE_SCANNING_FLUID_A_FILLING;
-                    } else if (event == EVENT_STOP) {
-                        currentState = STATE_ABORT;
-                    } else if (event == EVENT_ERROR) {
-                        currentState = STATE_ERROR;
-                    }
-                    break;
-
-                case STATE_SCANNING_FLUID_A_FILLING:
-                    if (event == EVENT_DONE) {
-                        currentState = STATE_FINISHED;
-                    } else if (event == EVENT_STOP) {
-                        currentState = STATE_ABORT;
-                    } else if (event == EVENT_ERROR) {
-                        currentState = STATE_ERROR;
-                    }
-                    break;
-
-                case STATE_ABORT:
-                case STATE_ERROR:
-                case STATE_FINISHED:
-                    if (event == EVENT_DONE) {
-                        currentState = STATE_IDLE;
-                    }
-                    break;
-
-                default:
-                    break;
-            }
             debugPrint(LOG_DEBUG, "Transition State: %d → %d (event=%d)", lastState, currentState, event);
         }
         vTaskDelay(pdMS_TO_TICKS(10));
@@ -111,7 +116,7 @@ void createStateMachineTask() {
     xTaskCreatePinnedToCore(
         stateMachineTask,
         "stateMachineTask",
-        4096,
+        STACK_SIZE_LARGE,
         nullptr,
         PRIORITY_HIGH,
         nullptr,
