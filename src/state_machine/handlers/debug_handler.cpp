@@ -4,34 +4,41 @@
 
 #if DEBUG_ENABLED
 
+volatile bool debugPrintTaskReady = false;
+
 QueueHandle_t debugQueue = nullptr;
 SemaphoreHandle_t debugMutex = nullptr;
-DebugLevel currentDebuLevel = LOG_DEBUG;
 
 void debugSendToQueue(const char *message) {
-    if (debugQueue) {
-        xQueueSend(debugQueue, message, 0);
-    }
+    if (!debugQueue) return;
+
+    char buffer[DEBUG_MESSAGE_LENGTH];
+    strncpy(buffer, message, DEBUG_MESSAGE_LENGTH - 1);
+    buffer[DEBUG_MESSAGE_LENGTH - 1] = '\0';
+    xQueueSend(debugQueue, buffer, 0);
 }
 
 void debugPrint(DebugLevel level, const char *message, ...) {
     if (!debugMutex) return;
-    if (xSemaphoreTake(debugMutex, 0) != pdTRUE) return;
+    if (xSemaphoreTake(debugMutex, pdMS_TO_TICKS(5)) != pdTRUE) return;
 
     char buffer[DEBUG_MESSAGE_LENGTH];
-    const char *tag =
-            (level == LOG_WARNING)
-                ? "[WAR] "
-                : (level == LOG_ERROR)
-                      ? "[ERR] "
-                      : (level == LOG_INFO)
-                            ? "[INF] "
-                            : "[DBG] ";
 
-    snprintf(buffer, sizeof(buffer), "%s", tag);
+    static const char *tags[] = {
+        "[ERR] ",
+        "[WAR] ",
+        "[INF] ",
+        "[DBG] ",
+    };
+    const char *tag = tags[level];
+
     va_list args;
     va_start(args, message);
-    vsnprintf(buffer + strlen(buffer), sizeof(buffer) - strlen(buffer), message, args);
+
+    const int numChar = snprintf(buffer, sizeof(buffer), "%s", tag);
+    if (numChar > 0 && numChar < sizeof(buffer)) {
+        vsnprintf(buffer + numChar, sizeof(buffer) - numChar, message, args);
+    }
     va_end(args);
 
     xSemaphoreGive(debugMutex);
@@ -39,9 +46,10 @@ void debugPrint(DebugLevel level, const char *message, ...) {
     debugSendToQueue(buffer);
 }
 
-
 [[noreturn]] void debugTask(void *parameters) {
+    debugPrintTaskReady = true;
     debugPrint(LOG_INFO, "debugTask started on core %d", xPortGetCoreID());
+
     char buffer[DEBUG_MESSAGE_LENGTH];
 
     for (;;) {
@@ -49,14 +57,15 @@ void debugPrint(DebugLevel level, const char *message, ...) {
             Serial.println(buffer);
         }
     }
+    vTaskDelete(nullptr);
 }
 
-// TODO: add Function that Prints (Using DebugPrint) the Used Task Stack Size
+// TODO: maybe add Function that Prints (Using DebugPrint) the Used Task Stack Size
 
 void debugBegin() {
     Serial.begin(DEBUG_SERIAL);
 
-    debugQueue = xQueueCreate(30, 256);
+    debugQueue = xQueueCreate(30, DEBUG_MESSAGE_LENGTH);
     debugMutex = xSemaphoreCreateMutex();
 
     xTaskCreatePinnedToCore(
@@ -68,7 +77,10 @@ void debugBegin() {
         nullptr,
         CORE_ID_0
     );
-    delay(20);
+
+    while (!debugPrintTaskReady) {
+        vTaskDelay(pdMS_TO_TICKS(10));
+    }
 }
 
 #endif

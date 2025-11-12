@@ -56,6 +56,7 @@ bool receiveIsCupFull() {
         }
         vTaskDelay(pdMS_TO_TICKS(20));
     }
+    vTaskDelete(nullptr);
 }
 
 [[noreturn]] void scannFluidHeight(void *parameter) {
@@ -74,6 +75,7 @@ bool receiveIsCupFull() {
         }
         vTaskDelay(pdMS_TO_TICKS(20));
     }
+    vTaskDelete(nullptr);
 }
 
 void createScannTask() {

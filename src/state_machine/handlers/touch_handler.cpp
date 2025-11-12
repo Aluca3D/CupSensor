@@ -75,6 +75,7 @@ void handleButtonAction(SystemState current, ButtonID button) {
         }
         vTaskDelay(pdMS_TO_TICKS(20));
     }
+    vTaskDelete(nullptr);
 }
 
 void createCheckUserInputTask() {

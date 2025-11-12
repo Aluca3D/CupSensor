@@ -85,6 +85,7 @@ ButtonID receivePressedButton() {
 
         vTaskDelay(pdMS_TO_TICKS(20));
     }
+    vTaskDelete(nullptr);
 }
 
 void createFillTask() {

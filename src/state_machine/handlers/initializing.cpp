@@ -36,6 +36,7 @@ unsigned long setupHeight = 0;
         }
         vTaskDelay(pdMS_TO_TICKS(200));
     }
+    vTaskDelete(nullptr);
 }
 
 void createInitTask() {

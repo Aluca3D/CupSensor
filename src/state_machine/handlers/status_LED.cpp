@@ -49,6 +49,7 @@
         }
         vTaskDelay(pdMS_TO_TICKS(300));
     }
+    vTaskDelete(nullptr);
 }
 
 void createLEDTask() {

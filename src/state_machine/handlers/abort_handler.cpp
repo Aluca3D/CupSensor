@@ -25,6 +25,7 @@
         }
         vTaskDelay(pdMS_TO_TICKS(200));
     }
+    vTaskDelete(nullptr);
 }
 
 void createAbortTask() {

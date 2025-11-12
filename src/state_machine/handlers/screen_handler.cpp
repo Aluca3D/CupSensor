@@ -52,6 +52,7 @@ void addButton(ButtonID button) {
         }
         vTaskDelay(pdMS_TO_TICKS(100));
     }
+    vTaskDelete(nullptr);
 }
 
 void createUpdateScreenTask() {

@@ -14,8 +14,6 @@ enum DebugLevel : uint8_t {
     LOG_DEBUG
 };
 
-extern DebugLevel currentDebuLevel;
-
 #if DEBUG_ENABLED
 
 void debugBegin();

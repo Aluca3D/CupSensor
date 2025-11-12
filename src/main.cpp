@@ -39,7 +39,6 @@ XPT2046_Touchscreen ts(TOUCH_CS_PIN, TOUCH_IRQ_PIN);
  * (For Error/Abort to stop scanning, Servo and Pumps)
  *
  * TODO: When all done att little Additions
- *  - safety in every Task on end (even if never reached): vTaskDelete(nullptr);
  *  - Screen Write Function (to write different Screens like Finished/Error/FillStatus, etc) with Information on it
  */
 
