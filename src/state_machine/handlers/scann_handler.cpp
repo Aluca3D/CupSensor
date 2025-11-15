@@ -4,9 +4,13 @@
 
 #include "debug_handler.h"
 #include "globals.h"
+#include "modules/servo.h"
+#include "modules/ultra_sonic_sensor.h"
 #include "state_machine/state.h"
 
 QueueHandle_t cupFinishedFillingQueue = nullptr;
+
+volatile float cupHeightCM = -1.0f;
 
 void sendIsCupFull(bool cupIsFull) {
     if (!cupFinishedFillingQueue) return;
@@ -30,6 +34,13 @@ bool receiveIsCupFull() {
     return false;
 }
 
+static float getAverageDistanceCm() {
+    unsigned long echoUS = getAverageDistance(HeightTrigger, HeightEcho);
+    if (echoUS == 0) return -1.0f;
+    return echoToCm(echoUS);
+}
+
+//TODO Test if works
 [[noreturn]] void scannCupHeight(void *parameter) {
     debugPrint(LOG_INFO, "scannCupHeight started on core %d", xPortGetCoreID());
     SystemState lastSeenState = STATE_OFF;
@@ -40,17 +51,86 @@ bool receiveIsCupFull() {
             lastSeenState = current;
 
             if (current == STATE_SCANNING_HEIGHT) {
-                //if (!getIsMoving() && currentState != STATE_INITIALIZING) {
-                //    vTaskDelay(pdMS_TO_TICKS(1000)); // wait before reversing
-                //    if (getDistanceMoved() <= 0.05) {
-                //        servoMoveToo(10.0f);
-                //    } else {
-                //        servoMoveToo(0.0f);
-                //    }
-                //}
+                debugPrint(LOG_INFO, "Starting cup height scan...");
 
-                // Todo: Write Scann Height Logic
-                delay(4000);
+                float rimDownPos = -1.0f;
+                float rimUpPos = -1.0f;
+
+                servoMoveToo(MIN_SERVO_MOVEMENT_CM);
+                while (getIsMoving()) vTaskDelay(pdMS_TO_TICKS(5));
+                vTaskDelay(pdMS_TO_TICKS(50));
+
+                float lastDist = -1.0f;
+                for (float pos = MIN_SERVO_MOVEMENT_CM; pos < MAX_SERVO_MOVEMENT_CM; pos += SCAN_STEP_CM) {
+                    servoMoveToo(pos);
+                    while (getIsMoving()) vTaskDelay(pdMS_TO_TICKS(5));
+
+                    const float distCm = getAverageDistanceCm();
+                    debugPrint(LOG_INFO, "DOWN Scan pos=%.2f cm dist=%.2f cm", pos, distCm);
+
+                    if (distCm > 0 && lastDist > 0) {
+                        const float diff = distCm - lastDist;
+                        if (diff >= RIM_JUMP_THRESHOLD_CM) {
+                            rimDownPos = pos;
+                            debugPrint(LOG_INFO, "RIM Detected (down) at %.2f cm (Δ=%.2f)", pos, diff);
+                            vTaskDelay(pdMS_TO_TICKS(RIM_DEBOUNCE_MS));
+                            break;
+                        }
+                    }
+                    if (distCm > 0) lastDist = distCm;
+                    vTaskDelay(pdMS_TO_TICKS(10));
+                }
+                if (rimDownPos < 0.0f) {
+                    debugPrint(LOG_WARNING, "RIM (down) NOT found.");
+                }
+
+                servoMoveToo(MAX_SERVO_MOVEMENT_CM);
+                while (getIsMoving()) vTaskDelay(pdMS_TO_TICKS(5));
+                vTaskDelay(pdMS_TO_TICKS(50));
+
+                lastDist = -1.0f;
+                for (float pos = MAX_SERVO_MOVEMENT_CM; pos >= MIN_SERVO_MOVEMENT_CM; pos -= SCAN_STEP_CM) {
+                    servoMoveToo(pos);
+                    while (getIsMoving()) vTaskDelay(pdMS_TO_TICKS(5));
+
+                    const float distCm = getAverageDistanceCm();
+                    debugPrint(LOG_INFO, "UP Scan pos=%.2f cm dist=%.2f cm", pos, distCm);
+
+                    if (distCm > 0 && lastDist > 0) {
+                        const float diff = distCm - lastDist;
+                        if (diff >= RIM_JUMP_THRESHOLD_CM) {
+                            rimUpPos = pos;
+                            debugPrint(LOG_INFO, "RIM Detected (UP) at %.2f cm (Δ=%.2f)", pos, diff);
+                            vTaskDelay(pdMS_TO_TICKS(RIM_DEBOUNCE_MS));
+                            break;
+                        }
+                    }
+                    if (distCm > 0) lastDist = distCm;
+                    vTaskDelay(pdMS_TO_TICKS(10));
+                }
+                if (rimUpPos < 0.0f) {
+                    debugPrint(LOG_WARNING, "RIM (up) NOT found.");
+                }
+
+                if (rimDownPos > 0.0f && rimUpPos > 0.0f) {
+                    const float avgPos = (rimDownPos + rimUpPos) * 0.5f;
+                    float finalPos = avgPos - RIM_BUFFER_CM;
+                    if (finalPos < MIN_SERVO_MOVEMENT_CM) finalPos = MIN_SERVO_MOVEMENT_CM;
+                    if (finalPos > MAX_SERVO_MOVEMENT_CM) finalPos = MAX_SERVO_MOVEMENT_CM;
+
+                    portENTER_CRITICAL(&servoDataMux);
+                    cupHeightCM = finalPos;
+                    portEXIT_CRITICAL(&servoDataMux);
+
+                    debugPrint(LOG_INFO, "Cup height (servo pos) = %.2f cm (avg=%.2f buf=%.2f)",
+                               finalPos, avgPos, RIM_BUFFER_CM);
+                } else {
+                    portENTER_CRITICAL(&servoDataMux);
+                    cupHeightCM = -1.0f;
+                    portEXIT_CRITICAL(&servoDataMux);
+                    debugPrint(LOG_WARNING, "Cup height scan FAILED (rimDown=%.2f rimUp=%.2f)", rimDownPos, rimUpPos);
+                }
+
                 sendStateEvent(EVENT_DONE);
             }
         }

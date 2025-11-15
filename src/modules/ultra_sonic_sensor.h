@@ -20,5 +20,6 @@ void getCupHeight(); // Maybe better in Handler
 
 void getFluidHeight(); // Maybe better in Handler
 
+float echoToCm(unsigned long echoTime);
 
 #endif //PROJECT_CUPSENSE_US_SENSOR_H

@@ -160,7 +160,7 @@ void createServoTask() {
     }
 }
 
-float getDistanceMoved() {
+float getServoPosition() {
     portENTER_CRITICAL(&servoDataMux);
     const float value = distanceMoved;
     portEXIT_CRITICAL(&servoDataMux);

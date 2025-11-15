@@ -16,7 +16,7 @@ void servoDetach();
 
 void createServoTask();
 
-float getDistanceMoved();
+float getServoPosition();
 
 bool getIsForwards();
 

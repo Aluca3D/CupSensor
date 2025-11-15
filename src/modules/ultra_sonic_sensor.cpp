@@ -44,3 +44,7 @@ unsigned long getAverageDistance(UltraSonicSensors TRIGGER, UltraSonicSensors EC
     }
     return 0;
 }
+
+float echoToCm(unsigned long echoTime) {
+    return (echoTime * 0.0343f) / 2.0f;
+}
