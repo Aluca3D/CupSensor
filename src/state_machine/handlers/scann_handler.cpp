@@ -62,6 +62,8 @@ static float getAverageDistanceCm() {
 
                 float lastDist = -1.0f;
                 for (float pos = MIN_SERVO_MOVEMENT_CM; pos < MAX_SERVO_MOVEMENT_CM; pos += SCAN_STEP_CM) {
+                    if (current == STATE_ABORT) break;
+
                     servoMoveToo(pos);
                     while (getIsMoving()) vTaskDelay(pdMS_TO_TICKS(5));
 
@@ -90,6 +92,8 @@ static float getAverageDistanceCm() {
 
                 lastDist = -1.0f;
                 for (float pos = MAX_SERVO_MOVEMENT_CM; pos >= MIN_SERVO_MOVEMENT_CM; pos -= SCAN_STEP_CM) {
+                    if (current == STATE_ABORT) break;
+
                     servoMoveToo(pos);
                     while (getIsMoving()) vTaskDelay(pdMS_TO_TICKS(5));
 
@@ -110,6 +114,10 @@ static float getAverageDistanceCm() {
                 }
                 if (rimUpPos < 0.0f) {
                     debugPrint(LOG_WARNING, "RIM (up) NOT found.");
+                }
+
+                if (current == STATE_ABORT) {
+                    debugPrint(LOG_INFO, "Scann Aborted");
                 }
 
                 if (rimDownPos > 0.0f && rimUpPos > 0.0f) {
