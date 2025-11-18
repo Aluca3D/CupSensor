@@ -40,7 +40,9 @@ static float getAverageDistanceCm() {
     return echoToCm(echoUS);
 }
 
-//TODO Test if works
+//TODO:
+// - Test if works
+// - Add/Check if Cup 2 tall (Max Fill Rate 10-15cm)
 [[noreturn]] void scannCupHeight(void *parameter) {
     debugPrint(LOG_INFO, "scannCupHeight started on core %d", xPortGetCoreID());
     SystemState lastSeenState = STATE_OFF;
@@ -147,6 +149,9 @@ static float getAverageDistanceCm() {
     vTaskDelete(nullptr);
 }
 
+//TODO:
+// - Test If Works
+// - Calibrate
 [[noreturn]] void scannFluidHeight(void *parameter) {
     debugPrint(LOG_INFO, "scannFluidHeight started on core %d", xPortGetCoreID());
     SystemState lastSeenState = STATE_OFF;
@@ -157,8 +162,15 @@ static float getAverageDistanceCm() {
             lastSeenState = current;
 
             if (current == STATE_SCANNING_FLUID_A_FILLING) {
-                // TODO: Checker Logic that checks CupHeight and Fluid Level
-                sendIsCupFull(true);
+                const float baseHeightCM = echoToCm(setupHeight);
+                constexpr float positionDifferenceCM = 1.0f; // Check
+
+                const float actualSensorPositionCm = baseHeightCM - positionDifferenceCM;
+                const float waterLevelCm = echoToCm(getAverageDistance(WaterTrigger, WaterEcho)) - 1.0f; // Check
+
+                if (actualSensorPositionCm >= waterLevelCm) {
+                    sendIsCupFull(true);
+                }
             }
         }
         vTaskDelay(pdMS_TO_TICKS(20));

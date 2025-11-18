@@ -53,7 +53,7 @@
 #define SCREEN_RESET_PIN  10
 #define SCREEN_CS_PIN      9
 
-#define SCREEN_ROTATION         1
+#define SCREEN_ROTATION         3  // TODO: Test if Screen Flip Worked
 #define SCREEN_WIDTH            320
 #define SCREEN_HEIGHT           240
 #define FONT_SIZE               2
