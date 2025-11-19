@@ -39,6 +39,8 @@ XPT2046_Touchscreen ts(TOUCH_CS_PIN, TOUCH_IRQ_PIN);
  * (For Error/Abort to stop scanning, Servo and Pumps)
  *
  * TODO: When all done att little Additions
+ *  - Add comments to make code more readable
+ *  - remove TODOs & unnecessary code (unused Functions/imports)
  *  - Screen Write Function (to write different Screens like Finished/Error/FillStatus, etc) with Information on it
  */
 

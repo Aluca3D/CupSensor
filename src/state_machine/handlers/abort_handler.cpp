@@ -9,7 +9,7 @@
 
 
 [[noreturn]] void abortTask(void *parameters) {
-    debugPrint(LOG_INFO, "initializingTask started on core %d", xPortGetCoreID());
+    debugPrint(LOG_INFO, "abortTask started on core %d", xPortGetCoreID());
     SystemState lastSeenState = STATE_OFF;
 
     for (;;) {
@@ -18,7 +18,9 @@
             lastSeenState = current;
 
             if (current == STATE_ABORT) {
-                // TODO: add screen message (from where it aborted)
+                //TODO:
+                // - add screen message (from where it aborted)
+                // - add ResetServo Function
                 debugPrint(LOG_INFO, "Stopping All Pumps");
                 stopAllPumps();
             }

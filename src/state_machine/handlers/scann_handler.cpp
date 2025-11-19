@@ -35,14 +35,15 @@ bool receiveIsCupFull() {
 }
 
 static float getAverageDistanceCm() {
-    unsigned long echoUS = getAverageDistance(HeightTrigger, HeightEcho);
-    if (echoUS == 0) return -1.0f;
+    const unsigned long echoUS = getAverageDistance(HeightTrigger, HeightEcho);
+    if (echoUS == 0 || echoToCm(echoUS) >= MAX_SCANN_DISTANCE_HEIGHT_CM) return -1.0f;
     return echoToCm(echoUS);
 }
 
 //TODO:
 // - Test if works
 // - Add/Check if Cup 2 tall (Max Fill Rate 10-15cm)
+// - check if return is -1, if true ignore / no cup detected
 [[noreturn]] void scannCupHeight(void *parameter) {
     debugPrint(LOG_INFO, "scannCupHeight started on core %d", xPortGetCoreID());
     SystemState lastSeenState = STATE_OFF;
@@ -128,7 +129,7 @@ static float getAverageDistanceCm() {
                     if (finalPos < MIN_SERVO_MOVEMENT_CM) finalPos = MIN_SERVO_MOVEMENT_CM;
                     if (finalPos > MAX_SERVO_MOVEMENT_CM) finalPos = MAX_SERVO_MOVEMENT_CM;
 
-                    portENTER_CRITICAL(&servoDataMux);
+                    portENTER_CRITICAL(&servoDataMux); // TODO: create own mutex (optional but better)
                     cupHeightCM = finalPos;
                     portEXIT_CRITICAL(&servoDataMux);
 
@@ -140,7 +141,6 @@ static float getAverageDistanceCm() {
                     portEXIT_CRITICAL(&servoDataMux);
                     debugPrint(LOG_WARNING, "Cup height scan FAILED (rimDown=%.2f rimUp=%.2f)", rimDownPos, rimUpPos);
                 }
-
                 sendStateEvent(EVENT_DONE);
             }
         }
@@ -150,8 +150,7 @@ static float getAverageDistanceCm() {
 }
 
 //TODO:
-// - Test If Works
-// - Calibrate
+// - Doesnt Work
 [[noreturn]] void scannFluidHeight(void *parameter) {
     debugPrint(LOG_INFO, "scannFluidHeight started on core %d", xPortGetCoreID());
     SystemState lastSeenState = STATE_OFF;
@@ -169,6 +168,7 @@ static float getAverageDistanceCm() {
                 const float waterLevelCm = echoToCm(getAverageDistance(WaterTrigger, WaterEcho)) - 1.0f; // Check
 
                 if (actualSensorPositionCm >= waterLevelCm) {
+                    // Overwork
                     sendIsCupFull(true);
                 }
             }

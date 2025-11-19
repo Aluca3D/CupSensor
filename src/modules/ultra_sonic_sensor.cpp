@@ -42,9 +42,10 @@ unsigned long getAverageDistance(UltraSonicSensors TRIGGER, UltraSonicSensors EC
     if (validReadings > 0) {
         return total / validReadings;
     }
-    return 0;
+    return -1;
 }
 
 float echoToCm(unsigned long echoTime) {
-    return (echoTime * 0.0343f) / 2.0f;
+    static constexpr float scale = 0.0343f / 2.0f;
+    return static_cast<float>(echoTime) * scale;
 }

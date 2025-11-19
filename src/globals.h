@@ -1,6 +1,8 @@
 ﻿#ifndef PROJECT_CUPSENSE_GLOBAL_VARIABLES_H
 #define PROJECT_CUPSENSE_GLOBAL_VARIABLES_H
 
+#include <Arduino.h>
+
 enum TaskPriority : UBaseType_t {
     PRIORITY_IDLE = 0,
     PRIORITY_LOW = 1,

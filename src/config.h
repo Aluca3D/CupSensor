@@ -9,9 +9,11 @@
 // Ultrasonic Sensor's
 #define US_WATER_ECHO_PIN     42
 #define US_WATER_TRIGGER_PIN  41
+#define MAX_SCANN_DISTANCE_WATER_CM 15.00f
 
 #define US_HEIGHT_ECHO_PIN    40
 #define US_HEIGHT_TRIGGER_PIN 39
+#define MAX_SCANN_DISTANCE_HEIGHT_CM 5.00f
 
 #define NUMBER_OF_READINGS 4
 #define PULSEIN_TIMEOUT_US 25000
@@ -53,7 +55,7 @@
 #define SCREEN_RESET_PIN  10
 #define SCREEN_CS_PIN      9
 
-#define SCREEN_ROTATION         3  // TODO: Test if Screen Flip Worked
+#define SCREEN_ROTATION         1
 #define SCREEN_WIDTH            320
 #define SCREEN_HEIGHT           240
 #define FONT_SIZE               2

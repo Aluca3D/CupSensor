@@ -22,7 +22,7 @@ unsigned long setupHeight = 0;
             lastSeenState = current;
 
             if (current == STATE_INITIALIZING) {
-                // Reset Servo Height TODO: Check if needed
+                // Reset Servo Height
                 servoAttach();
                 servo.writeMicroseconds(SERVO_SPEED_BACKWARDS);
                 delay(100);
@@ -30,7 +30,8 @@ unsigned long setupHeight = 0;
                 servoDetach();
                 // Set Init Variables
                 setupHeight = getAverageDistance(WaterTrigger, WaterEcho);
-                debugPrint(LOG_DEBUG, "setupHeight Set to: %d", setupHeight);
+                const float setupHeightCm = echoToCm(setupHeight);
+                debugPrint(LOG_DEBUG, "setupHeight Set to: %d Echo, %.2f cm", setupHeight, setupHeightCm);
                 sendStateEvent(EVENT_DONE);
             }
         }
@@ -43,7 +44,7 @@ void createInitTask() {
     xTaskCreatePinnedToCore(
         &initializingTask,
         "initializingTask",
-        STACK_SIZE_MEDIUM,
+        STACK_SIZE_LARGE,
         nullptr,
         PRIORITY_NORMAL,
         nullptr,
