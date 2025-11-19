@@ -16,10 +16,6 @@ unsigned long getDistance(UltraSonicSensors TRIGGER, UltraSonicSensors ECHO);
 
 unsigned long getAverageDistance(UltraSonicSensors TRIGGER, UltraSonicSensors ECHO);
 
-void getCupHeight(); // Maybe better in Handler
-
-void getFluidHeight(); // Maybe better in Handler
-
 float echoToCm(unsigned long echoTime);
 
 #endif //PROJECT_CUPSENSE_US_SENSOR_H

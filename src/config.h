@@ -36,9 +36,10 @@
 #define MIN_SERVO_MOVEMENT_CM   0.00
 
 #define SCAN_STEP_CM 0.2f
-#define RIM_JUMP_THRESHOLD_CM 2.0f
+#define RIM_JUMP_THRESHOLD_CM 1.5f
 #define RIM_DEBOUNCE_MS 40
 #define RIM_BUFFER_CM 0.8f
+#define MAX_CUP_SIZE 10.0f
 
 // Touch
 #define TOUCH_IRQ_PIN 4

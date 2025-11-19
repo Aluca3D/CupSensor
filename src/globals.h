@@ -24,6 +24,6 @@ enum TaskStackSize : uint32_t {
     STACK_SIZE_DEBUG = 16384,
 };
 
-extern unsigned long setupHeight;
+extern unsigned long setupHeight; // add get/set Function (like get/setCupHeightCM)
 
 #endif //PROJECT_CUPSENSE_GLOBAL_VARIABLES_H
