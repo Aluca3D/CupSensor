@@ -12,6 +12,7 @@ QueueHandle_t cupFinishedFillingQueue = nullptr;
 portMUX_TYPE cupHeightMux = portMUX_INITIALIZER_UNLOCKED;
 
 volatile float cupHeightCM = -1.0f;
+volatile bool cupTooTall = false;
 
 void sendIsCupFull(bool cupIsFull) {
     if (!cupFinishedFillingQueue) return;
@@ -56,7 +57,6 @@ static float getAverageDistanceCm() {
 
 //TODO:
 // - Test if works (and Calibrate)
-// - Add/Check if Cup is too tall into scanUp (optional)
 
 bool isJumpDetected(float previous, float current) {
     if (previous < 0.0f && current > 0.0f) return true;
@@ -68,6 +68,15 @@ bool isJumpDetected(float previous, float current) {
     }
 
     return false;
+}
+
+void setCupTooTall(bool value) {
+    cupTooTall = value;
+}
+
+bool getCupTooTall() {
+    const bool value = cupTooTall;
+    return value;
 }
 
 float scanDown(SystemState state) {
@@ -101,6 +110,7 @@ float scanDown(SystemState state) {
 
     if (rimDownCM < 0.0f && lastDistanceCM > 0.0f) {
         rimDownCM = MAX_CUP_SIZE;
+        setCupTooTall(true);
         debugPrint(LOG_WARNING, "Cup too tall (DOWN), using MAX_CUP_SIZE = %.2f cm", rimDownCM);
     } else if (rimDownCM < 0.0f && lastDistanceCM < 0.0f) {
         debugPrint(LOG_WARNING, "RIM (down) NOT found.");
@@ -121,19 +131,28 @@ float scanUp(SystemState state) {
     for (float positionCM = MAX_SERVO_MOVEMENT_CM; positionCM >= MIN_SERVO_MOVEMENT_CM; positionCM -= SCAN_STEP_CM) {
         if (state == STATE_ABORT) break;
 
+        if (getCupTooTall()) {
+            rimUpCM = MAX_CUP_SIZE;
+            debugPrint(LOG_WARNING, "Cup too tall (UP), using MAX_CUP_SIZE = %.2f cm", rimUpCM);
+            setCupTooTall(false);
+            return rimUpCM;
+        }
+
         servoMoveToo(positionCM);
         while (getIsMoving()) vTaskDelay(pdMS_TO_TICKS(5));
 
         const float distanceCM = getAverageDistanceCm();
         debugPrint(LOG_INFO, "UP Scan pos=%.2f cm dist=%.2f cm", positionCM, distanceCM);
 
-        if (!firstRun && isJumpDetected(lastDistanceCM, distanceCM)) {
-            const float differenceCM = distanceCM - lastDistanceCM;
-            if (differenceCM >= RIM_JUMP_THRESHOLD_CM) {
-                rimUpCM = positionCM;
-                debugPrint(LOG_INFO, "RIM Detected (up) at %.2f cm (Δ=%.2f cm)", positionCM, differenceCM);
-                vTaskDelay(pdMS_TO_TICKS(RIM_DEBOUNCE_MS));
-                break;
+        if (!firstRun) {
+            if (isJumpDetected(lastDistanceCM, distanceCM)) {
+                const float differenceCM = distanceCM - lastDistanceCM;
+                if (differenceCM >= RIM_JUMP_THRESHOLD_CM) {
+                    rimUpCM = positionCM;
+                    debugPrint(LOG_INFO, "RIM Detected (up) at %.2f cm (Δ=%.2f cm)", positionCM, differenceCM);
+                    vTaskDelay(pdMS_TO_TICKS(RIM_DEBOUNCE_MS));
+                    break;
+                }
             }
         }
 
@@ -184,7 +203,6 @@ float calculateDifferenceCm(float rimDownPos, float rimUpPos) {
                         if (finalSize > MAX_SERVO_MOVEMENT_CM) finalSize = MAX_SERVO_MOVEMENT_CM;
 
                         setCupHeightCM(finalSize);
-
 
                         debugPrint(
                             LOG_INFO,

@@ -5,8 +5,6 @@
 
 extern QueueHandle_t cupFinishedFillingQueue;
 
-extern portMUX_TYPE cupHeightMux;
-
 void sendIsCupFull(bool cupIsFull);
 
 bool receiveIsCupFull();
