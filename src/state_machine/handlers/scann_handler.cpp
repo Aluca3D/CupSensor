@@ -4,14 +4,15 @@
 
 #include "debug_handler.h"
 #include "globals.h"
+#include "screen_handler.h"
 #include "modules/servo.h"
 #include "modules/ultra_sonic_sensor.h"
 #include "state_machine/state.h"
 
 QueueHandle_t cupFinishedFillingQueue = nullptr;
-portMUX_TYPE cupHeightMux = portMUX_INITIALIZER_UNLOCKED;
+portMUX_TYPE cupRimHeightMUX = portMUX_INITIALIZER_UNLOCKED;
 
-volatile float cupHeightCM = -1.0f;
+volatile float cupRimHeightCM = -1.0f;
 volatile bool cupTooTall = false;
 
 void sendIsCupFull(bool cupIsFull) {
@@ -36,16 +37,16 @@ bool receiveIsCupFull() {
     return false;
 }
 
-void setCupHeightCM(float value) {
-    portENTER_CRITICAL(&cupHeightMux);
-    cupHeightCM = value;
-    portEXIT_CRITICAL(&cupHeightMux);
+void setCupRimHeightCM(float value) {
+    portENTER_CRITICAL(&cupRimHeightMUX);
+    cupRimHeightCM = value;
+    portEXIT_CRITICAL(&cupRimHeightMUX);
 }
 
-float getCupHeightCM() {
-    portENTER_CRITICAL(&cupHeightMux);
-    const float value = cupHeightCM;
-    portEXIT_CRITICAL(&cupHeightMux);
+float getCupRimHeightCM() {
+    portENTER_CRITICAL(&cupRimHeightMUX);
+    const float value = cupRimHeightCM;
+    portEXIT_CRITICAL(&cupRimHeightMUX);
     return value;
 }
 
@@ -88,7 +89,7 @@ float scanDown(SystemState state) {
     vTaskDelay(pdMS_TO_TICKS(50));
 
     for (float positionCM = MIN_SERVO_MOVEMENT_CM; positionCM <= MAX_SERVO_MOVEMENT_CM; positionCM += SCAN_STEP_CM) {
-        if (state == STATE_ABORT) break;
+        if (state == STATE_ABORT || state == STATE_ERROR) break;
 
         servoMoveToo(positionCM);
         while (getIsMoving()) vTaskDelay(pdMS_TO_TICKS(5));
@@ -129,7 +130,7 @@ float scanUp(SystemState state) {
     vTaskDelay(pdMS_TO_TICKS(50));
 
     for (float positionCM = MAX_SERVO_MOVEMENT_CM; positionCM >= MIN_SERVO_MOVEMENT_CM; positionCM -= SCAN_STEP_CM) {
-        if (state == STATE_ABORT) break;
+        if (state == STATE_ABORT || state == STATE_ERROR) break;
 
         if (getCupTooTall()) {
             rimUpCM = MAX_CUP_SIZE;
@@ -200,14 +201,14 @@ float calculateDifferenceCm(float rimDownPos, float rimUpPos) {
                         if (finalSize < MIN_SERVO_MOVEMENT_CM) finalSize = MIN_SERVO_MOVEMENT_CM;
                         if (finalSize > MAX_SERVO_MOVEMENT_CM) finalSize = MAX_SERVO_MOVEMENT_CM;
 
-                        setCupHeightCM(finalSize);
+                        setCupRimHeightCM(finalSize);
                         debugPrint(
                             LOG_INFO,
                             "Final Position: %.2f cm (rimDownPos: %.2f cm rimUpPos: %.2f cm)",
                             finalSize, rimDownPos, rimUpPos
                         );
                     } else {
-                        setCupHeightCM(-1.0f);
+                        setCupRimHeightCM(-1.0f);
                         debugPrint(
                             LOG_WARNING,
                             "Cup height scan FAILED (rimDown=%.2f cm rimUp=%.2f cm)",
@@ -226,9 +227,9 @@ float calculateDifferenceCm(float rimDownPos, float rimUpPos) {
         }
         vTaskDelay(pdMS_TO_TICKS(20));
     }
-    vTaskDelete(nullptr);
 }
 
+// TODO: TEST!!
 [[noreturn]] void scannFluidHeight(void *parameter) {
     debugPrint(LOG_INFO, "scannFluidHeight started on core %d", xPortGetCoreID());
     SystemState lastSeenState = STATE_OFF;
@@ -243,14 +244,14 @@ float calculateDifferenceCm(float rimDownPos, float rimUpPos) {
                 bool scanningWaterLevel = true;
 
                 const float baseHeightCM = echoToCm(setupHeight);
+                const float actualCupRimPositionCM = positionDifferenceCM + getCupRimHeightCM();
+                const float targetFillLevel = actualCupRimPositionCM + CUP_BUFFER_CM;
 
-                const float actualWaterSensorPositionCm = baseHeightCM; //TODO: Remove if never needed
-                const float actualCupHeightCM = baseHeightCM - positionDifferenceCM - getCupHeightCM();
-
-                debugPrint(LOG_INFO, "getCupHeightCM: %.2f cm actualCupHeightCM: %.2f", getCupHeightCM(),
-                           actualCupHeightCM);
-
-                const float targetFillLevel = actualCupHeightCM - CUP_BUFFER_CM;
+                debugPrint(
+                    LOG_INFO,
+                    "getCupRimHeightCM: %.2f cm actualCupRimPositionCM: %.2f",
+                    getCupRimHeightCM(), actualCupRimPositionCM
+                );
 
                 while (scanningWaterLevel) {
                     if (currentState == STATE_ABORT) {
@@ -259,20 +260,30 @@ float calculateDifferenceCm(float rimDownPos, float rimUpPos) {
                         scanningWaterLevel = false;
                         break;
                     }
-                    if (getCupHeightCM() < 0.0f) {
+                    if (getCupRimHeightCM() < 0.0f) {
+                        sendIsCupFull(true);
+                        scanningWaterLevel = false;
+                        break;
+                    }
+                    if (targetFillLevel >= baseHeightCM) {
+                        sendScreenError("Error, targetFillLevel: %.2f cm is bigger then baseHeightCM: %.2f cm",
+                                        targetFillLevel, baseHeightCM);
                         sendIsCupFull(true);
                         scanningWaterLevel = false;
                         break;
                     }
 
                     const float waterLevelCM = echoToCm(getAverageDistance(WaterTrigger, WaterEcho));
-                    debugPrint(LOG_INFO, "WaterLevelCM: %.2f cm targetFillLevel: %.2f", waterLevelCM, targetFillLevel);
-                    if (waterLevelCM <= targetFillLevel) {
+                    debugPrint(
+                        LOG_INFO,
+                        "WaterLevelCM: %.2f cm targetFillLevel: %.2f",
+                        waterLevelCM, targetFillLevel
+                    );
+
+                    if (waterLevelCM >= targetFillLevel) {
                         debugPrint(LOG_INFO, "Cup Is full");
                         sendIsCupFull(true);
                         scanningWaterLevel = false;
-                    } else {
-                        sendIsCupFull(false);
                     }
 
                     vTaskDelay(pdMS_TO_TICKS(WATER_LEVEL_SCAN_INTERVAL_MS));
@@ -281,13 +292,12 @@ float calculateDifferenceCm(float rimDownPos, float rimUpPos) {
         }
         vTaskDelay(pdMS_TO_TICKS(20));
     }
-    vTaskDelete(nullptr);
 }
 
 void createScannTask() {
     cupFinishedFillingQueue = xQueueCreate(4, sizeof(bool));
     if (cupFinishedFillingQueue == nullptr) {
-        debugPrint(LOG_ERROR, "Failed to create cupFinishedFillingQueue");
+        debugPrint(LOG_WARNING, "Failed to create cupFinishedFillingQueue");
         while (true) {
         }
     }

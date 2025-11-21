@@ -76,8 +76,8 @@ ButtonID receivePressedButton() {
                 debugPrint(LOG_INFO, "Stopping pump %d", pumpRelay);
                 stopPump(pumpRelay);
                 pumpRelay = PUMP_NONE;
-            } else if (current == STATE_ABORT && pumpRelay != PUMP_NONE) {
-                debugPrint(LOG_INFO, "Aborting, stopping pump %d", pumpRelay);
+            } else if ((current == STATE_ABORT || current == STATE_ERROR) && pumpRelay != PUMP_NONE) {
+                debugPrint(LOG_INFO, "Stopping pump %d", pumpRelay);
                 stopPump(pumpRelay);
                 pumpRelay = PUMP_NONE;
             }
@@ -85,13 +85,12 @@ ButtonID receivePressedButton() {
 
         vTaskDelay(pdMS_TO_TICKS(20));
     }
-    vTaskDelete(nullptr);
 }
 
 void createFillTask() {
     buttonQueue = xQueueCreate(BUTTON_COUNT, sizeof(ButtonID));
     if (!buttonQueue) {
-        debugPrint(LOG_ERROR, "Failed to create button queue\n");
+        debugPrint(LOG_WARNING, "Failed to create button queue");
         while (true) {
         }
     }

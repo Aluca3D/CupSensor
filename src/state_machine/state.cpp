@@ -103,7 +103,6 @@ void handleState(SystemEvent event, SystemState state) {
         }
         vTaskDelay(pdMS_TO_TICKS(10));
     }
-    vTaskDelete(nullptr);
 }
 
 void createStateMachineTask() {

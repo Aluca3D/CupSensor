@@ -3,4 +3,10 @@
 
 void createUpdateScreenTask();
 
+void sendScreenError(const char *fmt, ...);
+
+struct ScreenErrorMessage {
+    char text[64];
+};
+
 #endif //CUPSENSOR_SCREENHANDLER_H

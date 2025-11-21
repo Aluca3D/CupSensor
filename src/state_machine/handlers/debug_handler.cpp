@@ -57,10 +57,7 @@ void debugPrint(DebugLevel level, const char *message, ...) {
             Serial.println(buffer);
         }
     }
-    vTaskDelete(nullptr);
 }
-
-// TODO: maybe add Function that Prints (Using DebugPrint) the Used Task Stack Size
 
 void debugBegin() {
     Serial.begin(DEBUG_SERIAL);

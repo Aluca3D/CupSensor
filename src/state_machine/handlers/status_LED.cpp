@@ -7,7 +7,6 @@
 #include "globals.h"
 #include "state_machine/state.h"
 
-
 [[noreturn]] void LEDTask(void *parameters) {
     debugPrint(LOG_INFO, "LEDTask started on core %d", xPortGetCoreID());
 
@@ -49,7 +48,6 @@
         }
         vTaskDelay(pdMS_TO_TICKS(300));
     }
-    vTaskDelete(nullptr);
 }
 
 void createLEDTask() {

@@ -4,9 +4,6 @@
 #include <Arduino.h>
 #include "config.h"
 
-extern SemaphoreHandle_t debugMutex;
-extern QueueHandle_t debugQueue;
-
 enum DebugLevel : uint8_t {
     LOG_ERROR,
     LOG_WARNING,

@@ -1,12 +1,9 @@
 ﻿#ifndef PROJECT_CUPSENSE_SERVO_H
 #define PROJECT_CUPSENSE_SERVO_H
 
-#include <Arduino.h>
 #include <ESP32Servo.h>
 
 extern Servo servo;
-
-extern portMUX_TYPE servoDataMux;
 
 void servoMoveToo(float positionCM);
 

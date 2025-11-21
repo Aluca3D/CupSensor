@@ -1,6 +1,5 @@
 ﻿#ifndef PROJECT_CUPSENSE_STATE_H
 #define PROJECT_CUPSENSE_STATE_H
-#include <Arduino.h>
 
 enum SystemState {
     STATE_OFF,
@@ -25,11 +24,8 @@ enum SystemEvent {
 extern volatile SystemState currentState;
 extern volatile SystemState lastState;
 
-extern QueueHandle_t stateEventQueue;
-
 void sendStateEvent(SystemEvent event);
 
 void createStateMachineTask();
-
 
 #endif //PROJECT_CUPSENSE_STATE_H

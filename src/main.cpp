@@ -6,12 +6,10 @@
 #include <Adafruit_NeoPixel.h>
 
 #include "config.h"
-#include "globals.h"
 #include "modules/pump_relay.h"
 #include "modules/servo.h"
 #include "modules/ultra_sonic_sensor.h"
 #include "state_machine/state.h"
-#include "state_machine/handlers/abort_handler.h"
 #include "state_machine/handlers/debug_handler.h"
 #include "state_machine/handlers/fill_handler.h"
 #include "state_machine/handlers/initializing.h"
@@ -34,14 +32,9 @@ SPIClass tsSPI(VSPI);
 XPT2046_Touchscreen ts(TOUCH_CS_PIN, TOUCH_IRQ_PIN);
 
 /*
- * TODO: add errorHandler
- * TODO: add StopAll Function (if needed)
- * (For Error/Abort to stop scanning, Servo and Pumps)
- *
  * TODO: When all done att little Additions
  *  - Add comments to make code more readable
  *  - remove TODOs & unnecessary code (unused Functions/imports)
- *  - Screen Write Function (to write different Screens like Finished/Error/FillStatus, etc) with Information on it
  */
 
 void setup() {
@@ -57,7 +50,6 @@ void setup() {
     createCheckUserInputTask();
     createStateMachineTask();
 
-    createAbortTask();
     createInitTask();
     createScannTask();
     createFillTask();

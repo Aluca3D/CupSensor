@@ -39,7 +39,7 @@
 #define RIM_JUMP_THRESHOLD_CM 1.0f
 #define RIM_DEBOUNCE_MS 40
 #define RIM_BUFFER_CM 0.8f
-#define MAX_CUP_SIZE 0.0f
+#define MAX_CUP_SIZE 2.0f
 #define CUP_BUFFER_CM 1.0f
 #define WATER_LEVEL_SCAN_INTERVAL_MS 100
 

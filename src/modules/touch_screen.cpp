@@ -46,7 +46,38 @@ void resetButton(ButtonID id) {
     tft.fillRect(button.x, button.y, button.w, button.h, COLOR_BLACK);
 }
 
+void drawTextRegion(TextRegionID id, const TextRegion &r, const char *txt) {
+    activeTextRegions[id] = true;
+
+    tft.fillRect(r.x, r.y, r.w, r.h, COLOR_BLACK);
+    int16_t x_center = r.x + (r.w / 2) - (strlen(txt) * 6 * FONT_SIZE) / 2;
+    int16_t y_center = r.y + (r.h / 2) - (8 * FONT_SIZE) / 2;
+
+    tft.setCursor(x_center, y_center);
+    tft.setTextSize(FONT_SIZE);
+    tft.setTextColor(r.textColor);
+    tft.print(txt);
+}
+
+void resetTextRegion(TextRegionID id, const TextRegion &r) {
+    activeTextRegions[id] = false;
+    tft.fillRect(r.x, r.y, r.w, r.h, COLOR_BLACK);
+}
+
 void resetScreen() {
+    for (int i = 0; i < TEXT_REGION_COUNT; i++) {
+        if (activeTextRegions[i]) {
+            debugPrint(LOG_INFO, "Resetting Text Region: %d", i);
+
+            switch (i) {
+                case TITLE_TXT: resetTextRegion(TITLE_TXT, TITLE_REGION);
+                    break;
+                case ERROR_TXT: resetTextRegion(ERROR_TXT, ERROR_REGION);
+                    break;
+                default: break;
+            }
+        }
+    }
     if (activeButtonsCount == 0) {
         debugPrint(LOG_WARNING, "resetScreen called but no active buttons");
         return;
