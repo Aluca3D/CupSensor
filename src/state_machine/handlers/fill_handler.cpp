@@ -40,7 +40,7 @@ ButtonID receivePressedButton() {
     bool alreadyFull = false;
 
     for (;;) {
-        const SystemState current = currentState;
+        const SystemState current = getCurrentState();
 
         const ButtonID buttonPressed = receivePressedButton();
         if (buttonPressed != BUTTON_COUNT) {
@@ -60,7 +60,7 @@ ButtonID receivePressedButton() {
 
         const bool cupIsFull = receiveIsCupFull();
         if (cupIsFull && !alreadyFull) {
-            sendStateEvent(EVENT_DONE);
+            sendStateEvent(EVENT_FILL_DONE);
             alreadyFull = true;
         } else if (!cupIsFull) {
             alreadyFull = false;
@@ -76,7 +76,10 @@ ButtonID receivePressedButton() {
                 debugPrint(LOG_INFO, "Stopping pump %d", pumpRelay);
                 stopPump(pumpRelay);
                 pumpRelay = PUMP_NONE;
-            } else if ((current == STATE_ABORT || current == STATE_ERROR) && pumpRelay != PUMP_NONE) {
+            } else if (
+                (current == STATE_ABORT || current == STATE_ERROR || current == STATE_IDLE)
+                && pumpRelay != PUMP_NONE
+            ) {
                 debugPrint(LOG_INFO, "Stopping pump %d", pumpRelay);
                 stopPump(pumpRelay);
                 pumpRelay = PUMP_NONE;

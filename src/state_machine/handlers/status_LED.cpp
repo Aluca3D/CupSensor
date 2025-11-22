@@ -15,7 +15,7 @@
     SystemState lastSeenState = STATE_OFF;
 
     for (;;) {
-        const SystemState current = currentState;
+        const SystemState current = getCurrentState();
 
         if (current != lastSeenState) {
             lastSeenState = current;

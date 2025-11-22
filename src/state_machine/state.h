@@ -16,13 +16,15 @@ enum SystemEvent {
     EVENT_NONE,
     EVENT_START,
     EVENT_DONE,
+    EVENT_FILL_DONE,
     EVENT_SCANN,
     EVENT_ERROR,
     EVENT_STOP,
 };
 
-extern volatile SystemState currentState;
-extern volatile SystemState lastState;
+SystemState getCurrentState();
+
+SystemState getlastState();
 
 void sendStateEvent(SystemEvent event);
 

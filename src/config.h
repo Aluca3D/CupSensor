@@ -27,7 +27,7 @@
 #define SERVO_PIN 15
 
 #define SERVO_SPEED_STOP        1477
-#define SERVO_SPEED_FORWARDS    1630
+#define SERVO_SPEED_FORWARDS    1640
 #define SERVO_SPEED_BACKWARDS   1210
 #define SERVO_MOVE_INTERVALS    50
 #define COG_RADIUS_CM           0.68
@@ -36,11 +36,11 @@
 #define MIN_SERVO_MOVEMENT_CM   0.00
 
 #define SCAN_STEP_CM 0.2f
-#define RIM_JUMP_THRESHOLD_CM 1.0f
+#define RIM_JUMP_THRESHOLD_CM 2.0f
 #define RIM_DEBOUNCE_MS 40
 #define RIM_BUFFER_CM 0.8f
 #define MAX_CUP_SIZE 2.0f
-#define CUP_BUFFER_CM 1.0f
+#define CUP_BUFFER_CM 1.5f
 #define WATER_LEVEL_SCAN_INTERVAL_MS 100
 
 // Touch

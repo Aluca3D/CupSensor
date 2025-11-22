@@ -55,7 +55,7 @@ void handleButtonAction(SystemState current, ButtonID button) {
 
     for (;;) {
         TS_Point point = ts.getPoint();
-        SystemState current = currentState;
+        const SystemState current = getCurrentState();
         const ButtonID currentButton = getTouchScreenButtonPressed(point);
 
         if (currentButton != lastButton) {

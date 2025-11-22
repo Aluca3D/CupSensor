@@ -33,25 +33,6 @@ struct ButtonRect {
     ScreenColor fontColor;
 };
 
-enum ButtonID {
-    FLUID_0,
-    FLUID_1,
-    FLUID_2,
-    ABORT,
-    CONTINUE,
-    BUTTON_COUNT // Always Last
-};
-
-// TODO: Refine/Test all areas and button positions
-constexpr ButtonRect BUTTONS[BUTTON_COUNT] = {
-    {"Fluid 0", 15, 20, 90, 150, COLOR_BLUE, COLOR_BLACK},
-    {"Fluid 1", 115, 20, 90, 150, COLOR_YELLOW, COLOR_BLACK},
-    {"Fluid 2", 215, 20, 90, 150, COLOR_CYAN, COLOR_BLACK},
-
-    {"Abort", 200, 100, 80, 80, COLOR_RED, COLOR_BLACK},
-    {"Continue", 200, 100, 80, 80, COLOR_GREEN, COLOR_BLACK}
-};
-
 struct TextRegion {
     int16_t x, y, w, h;
     ScreenColor textColor;
@@ -63,9 +44,35 @@ enum TextRegionID {
     TEXT_REGION_COUNT
 };
 
-bool activeTextRegions[TEXT_REGION_COUNT] = {false, false};
+extern bool activeScreenTextRegionsCount[TEXT_REGION_COUNT];
+
+enum ButtonID {
+    FLUID_0,
+    FLUID_1,
+    FLUID_2,
+    ABORT,
+    CONTINUE,
+    BUTTON_COUNT // Always Last
+};
+
+// TODO: Refine/Test all areas and button positions
+constexpr ButtonRect BUTTONS[BUTTON_COUNT] = {
+
+    // Fluid Buttons
+    {"Fluid 0", 10, 30, 90, 160, COLOR_BLUE, COLOR_BLACK},
+    {"Fluid 1", 115, 30, 90, 160, COLOR_YELLOW, COLOR_BLACK},
+    {"Fluid 2", 220, 30, 90, 160, COLOR_CYAN, COLOR_BLACK},
+
+    // Abort button
+    {"Abort", 100, 80, 120, 80, COLOR_RED, COLOR_BLACK},
+
+    // Continue button
+    {"Continue", 180, 150, 120, 80, COLOR_GREEN, COLOR_BLACK}
+};
+
+// Title and Error regions
 constexpr TextRegion TITLE_REGION = {0, 0, 320, 24, COLOR_WHITE};
-constexpr TextRegion ERROR_REGION = {0, 216, 320, 24, COLOR_RED};
+constexpr TextRegion ERROR_REGION = {0, 30, 320, 120, COLOR_RED};
 
 constexpr size_t MAX_ACTIVE_BUTTONS = BUTTON_COUNT;
 

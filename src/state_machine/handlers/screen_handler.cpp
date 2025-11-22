@@ -43,12 +43,10 @@ void addButton(ButtonID button) {
     bool hasPendingError = false;
 
     for (;;) {
-        const SystemState current = currentState;
+        const SystemState current = getCurrentState();
 
-        if (xQueueReceive(errorQueue, &pendingError, 0)) {
+        if (xQueueReceive(errorQueue, &pendingError, pdMS_TO_TICKS(100))) {
             hasPendingError = true;
-
-            currentState = STATE_ERROR;
 
             debugPrint(LOG_INFO, "Received screen error: %s", pendingError.text);
         }

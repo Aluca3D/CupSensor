@@ -4,6 +4,7 @@
 #include "XPT2046_Touchscreen.h"
 #include "state_machine/handlers/debug_handler.h"
 
+bool activeScreenTextRegionsCount[TEXT_REGION_COUNT] = {false, false};
 std::array<ButtonID, MAX_ACTIVE_BUTTONS> activeButtons{};
 size_t activeButtonsCount = 0;
 
@@ -47,26 +48,78 @@ void resetButton(ButtonID id) {
 }
 
 void drawTextRegion(TextRegionID id, const TextRegion &r, const char *txt) {
-    activeTextRegions[id] = true;
-
+    activeScreenTextRegionsCount[id] = true;
     tft.fillRect(r.x, r.y, r.w, r.h, COLOR_BLACK);
-    int16_t x_center = r.x + (r.w / 2) - (strlen(txt) * 6 * FONT_SIZE) / 2;
-    int16_t y_center = r.y + (r.h / 2) - (8 * FONT_SIZE) / 2;
-
-    tft.setCursor(x_center, y_center);
     tft.setTextSize(FONT_SIZE);
     tft.setTextColor(r.textColor);
-    tft.print(txt);
+
+    constexpr int char_w = 6 * FONT_SIZE; // default 5x7 font = 6 wide incl spacing
+    constexpr int char_h = 8 * FONT_SIZE;
+
+    const int max_chars_per_line = r.w / char_w;
+    const int max_lines = r.h / char_h;
+
+    int cursor_x = r.x;
+    int cursor_y = r.y;
+
+    int line_chars = 0;
+    int lines_used = 1;
+
+    const char *p = txt;
+
+    while (*p && lines_used <= max_lines) {
+        if (*p == '\n') {
+            cursor_y += char_h;
+            cursor_x = r.x;
+            line_chars = 0;
+            lines_used++;
+            p++;
+            continue;
+        }
+
+        if (*p == ' ') {
+            const char *w = p + 1;
+            int word_len = 0;
+            while (*w && *w != ' ' && *w != '\n')
+                word_len++, w++;
+
+            if (line_chars + 1 + word_len > max_chars_per_line) {
+                cursor_y += char_h;
+                cursor_x = r.x;
+                line_chars = 0;
+                lines_used++;
+                if (lines_used > max_lines)
+                    break;
+            }
+        }
+
+        if (line_chars >= max_chars_per_line) {
+            cursor_y += char_h;
+            cursor_x = r.x;
+            line_chars = 0;
+            lines_used++;
+            if (lines_used > max_lines)
+                break;
+        }
+
+        tft.setCursor(cursor_x, cursor_y);
+        tft.print(*p);
+
+        cursor_x += char_w;
+        line_chars++;
+
+        p++;
+    }
 }
 
 void resetTextRegion(TextRegionID id, const TextRegion &r) {
-    activeTextRegions[id] = false;
+    activeScreenTextRegionsCount[id] = false;
     tft.fillRect(r.x, r.y, r.w, r.h, COLOR_BLACK);
 }
 
 void resetScreen() {
     for (int i = 0; i < TEXT_REGION_COUNT; i++) {
-        if (activeTextRegions[i]) {
+        if (activeScreenTextRegionsCount[i]) {
             debugPrint(LOG_INFO, "Resetting Text Region: %d", i);
 
             switch (i) {

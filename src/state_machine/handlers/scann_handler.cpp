@@ -80,7 +80,7 @@ bool getCupTooTall() {
     return value;
 }
 
-float scanDown(SystemState state) {
+float scanDown() {
     float rimDownCM = -1.0f;
     float lastDistanceCM = -1.0f;
 
@@ -89,7 +89,7 @@ float scanDown(SystemState state) {
     vTaskDelay(pdMS_TO_TICKS(50));
 
     for (float positionCM = MIN_SERVO_MOVEMENT_CM; positionCM <= MAX_SERVO_MOVEMENT_CM; positionCM += SCAN_STEP_CM) {
-        if (state == STATE_ABORT || state == STATE_ERROR) break;
+        if (getCurrentState() != STATE_SCANNING_HEIGHT) break;
 
         servoMoveToo(positionCM);
         while (getIsMoving()) vTaskDelay(pdMS_TO_TICKS(5));
@@ -120,7 +120,7 @@ float scanDown(SystemState state) {
     return rimDownCM;
 }
 
-float scanUp(SystemState state) {
+float scanUp() {
     float rimUpCM = -1.0f;
     float lastDistanceCM = -1.0f;
     bool firstRun = true;
@@ -130,7 +130,7 @@ float scanUp(SystemState state) {
     vTaskDelay(pdMS_TO_TICKS(50));
 
     for (float positionCM = MAX_SERVO_MOVEMENT_CM; positionCM >= MIN_SERVO_MOVEMENT_CM; positionCM -= SCAN_STEP_CM) {
-        if (state == STATE_ABORT || state == STATE_ERROR) break;
+        if (getCurrentState() != STATE_SCANNING_HEIGHT) break;
 
         if (getCupTooTall()) {
             rimUpCM = MAX_CUP_SIZE;
@@ -177,41 +177,37 @@ float calculateDifferenceCm(float rimDownPos, float rimUpPos) {
     SystemState lastSeenState = STATE_OFF;
 
     for (;;) {
-        const SystemState current = currentState;
+        const SystemState current = getCurrentState();
         if (current != lastSeenState) {
             lastSeenState = current;
 
             if (current == STATE_SCANNING_HEIGHT) {
                 debugPrint(LOG_INFO, "Starting cup height scan...");
 
-                bool abort = false;
+                const float rimDownPos = scanDown();
+                const float rimUpPos = scanUp();
 
-                const float rimDownPos = scanDown(current);
-                const float rimUpPos = scanUp(current);
+                //TODO: FIX rimUpPos misfiring (no rim od to early)
+                if (rimDownPos > 0.0f && rimUpPos > 0.0f) {
+                    float finalSize = calculateDifferenceCm(rimDownPos, rimUpPos);
 
-                if (current == STATE_ABORT) {
-                    debugPrint(LOG_INFO, "Scann Aborted");
-                    abort = true;
-                }
+                    if (finalSize < MIN_SERVO_MOVEMENT_CM) finalSize = MIN_SERVO_MOVEMENT_CM;
+                    if (finalSize > MAX_SERVO_MOVEMENT_CM) finalSize = MAX_SERVO_MOVEMENT_CM;
 
-                if (!abort) {
-                    if (rimDownPos > 0.0f && rimUpPos > 0.0f) {
-                        float finalSize = calculateDifferenceCm(rimDownPos, rimUpPos);
-
-                        if (finalSize < MIN_SERVO_MOVEMENT_CM) finalSize = MIN_SERVO_MOVEMENT_CM;
-                        if (finalSize > MAX_SERVO_MOVEMENT_CM) finalSize = MAX_SERVO_MOVEMENT_CM;
-
-                        setCupRimHeightCM(finalSize);
-                        debugPrint(
-                            LOG_INFO,
-                            "Final Position: %.2f cm (rimDownPos: %.2f cm rimUpPos: %.2f cm)",
-                            finalSize, rimDownPos, rimUpPos
-                        );
+                    setCupRimHeightCM(finalSize);
+                    debugPrint(
+                        LOG_INFO,
+                        "Final Position: %.2f cm (rimDownPos: %.2f cm rimUpPos: %.2f cm)",
+                        finalSize, rimDownPos, rimUpPos
+                    );
+                    sendStateEvent(EVENT_DONE);
+                } else {
+                    setCupRimHeightCM(-1.0f);
+                    if (getCurrentState() == STATE_ABORT) {
+                        debugPrint(LOG_INFO, "Scan Aborted");
                     } else {
-                        setCupRimHeightCM(-1.0f);
-                        debugPrint(
-                            LOG_WARNING,
-                            "Cup height scan FAILED (rimDown=%.2f cm rimUp=%.2f cm)",
+                        sendScreenError(
+                            "Error, Cup height scan FAILED (rimDown=%.2f cm rimUp=%.2f cm)",
                             rimDownPos, rimUpPos
                         );
                     }
@@ -221,21 +217,18 @@ float calculateDifferenceCm(float rimDownPos, float rimUpPos) {
                 servoMoveToo(MIN_SERVO_MOVEMENT_CM);
                 while (getIsMoving()) vTaskDelay(pdMS_TO_TICKS(5));
                 vTaskDelay(pdMS_TO_TICKS(50));
-
-                sendStateEvent(EVENT_DONE);
             }
         }
         vTaskDelay(pdMS_TO_TICKS(20));
     }
 }
 
-// TODO: TEST!!
 [[noreturn]] void scannFluidHeight(void *parameter) {
     debugPrint(LOG_INFO, "scannFluidHeight started on core %d", xPortGetCoreID());
     SystemState lastSeenState = STATE_OFF;
 
     for (;;) {
-        const SystemState current = currentState;
+        const SystemState current = getCurrentState();
         if (current != lastSeenState) {
             lastSeenState = current;
 
@@ -254,7 +247,7 @@ float calculateDifferenceCm(float rimDownPos, float rimUpPos) {
                 );
 
                 while (scanningWaterLevel) {
-                    if (currentState == STATE_ABORT) {
+                    if (getCurrentState() == STATE_ABORT) {
                         debugPrint(LOG_INFO, "Abort detected");
                         sendIsCupFull(true);
                         scanningWaterLevel = false;
@@ -280,7 +273,7 @@ float calculateDifferenceCm(float rimDownPos, float rimUpPos) {
                         waterLevelCM, targetFillLevel
                     );
 
-                    if (waterLevelCM >= targetFillLevel) {
+                    if (waterLevelCM <= targetFillLevel) {
                         debugPrint(LOG_INFO, "Cup Is full");
                         sendIsCupFull(true);
                         scanningWaterLevel = false;

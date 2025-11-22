@@ -9,6 +9,8 @@ volatile SystemState currentState = STATE_OFF;
 volatile SystemState lastState = STATE_OFF;
 QueueHandle_t stateEventQueue = nullptr;
 
+portMUX_TYPE stateMutex = portMUX_INITIALIZER_UNLOCKED;
+
 void sendStateEvent(SystemEvent event) {
     if (!stateEventQueue) return;
 
@@ -30,6 +32,20 @@ SystemEvent receiveStateEvent() {
     }
 
     return EVENT_NONE;
+}
+
+SystemState getCurrentState() {
+    portENTER_CRITICAL(&stateMutex);
+    const SystemState value = currentState;
+    portEXIT_CRITICAL(&stateMutex);
+    return value;
+}
+
+SystemState getlastState() {
+    portENTER_CRITICAL(&stateMutex);
+    const SystemState value = lastState;
+    portEXIT_CRITICAL(&stateMutex);
+    return value;
 }
 
 void handleState(SystemEvent event, SystemState state) {
@@ -67,7 +83,7 @@ void handleState(SystemEvent event, SystemState state) {
             break;
 
         case STATE_SCANNING_FLUID_A_FILLING:
-            if (event == EVENT_DONE) {
+            if (event == EVENT_FILL_DONE) {
                 currentState = STATE_FINISHED;
             } else if (event == EVENT_STOP) {
                 currentState = STATE_ABORT;
